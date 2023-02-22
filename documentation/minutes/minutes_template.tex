@@ -1,0 +1,119 @@
+\documentclass[11pt,a4paper]{scrartcl}
+
+% Support for UTF-8 and non-English letters require the following two
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+% Font packages
+\usepackage[default,defaultsans,oldstyle,proportional]{lato}
+\usepackage[scaled]{beramono}
+\usepackage{sfmath}
+% Optimized justification via improved microtypography on character level
+\usepackage{microtype}
+\usepackage{ragged2e}
+\usepackage[none]{hyphenat} % disable all hyphenation
+\setlength{\emergencystretch}{3em} % allow extra hfill, needed if hyphenation disabled
+%\overfullrule=1mm % mark overfull boxes
+%\usepackage{showframe} % show edges of text areas
+% Page layout
+\usepackage[left=20mm,right=20mm,top=20mm,bottom=20mm,
+   nohead,foot=10mm]{geometry}
+% SVN metadata
+\usepackage[today,revrange,nofancy]{svninfo}
+\svnInfo $Id$
+% Page headers
+\usepackage{scrlayer-scrpage}
+\usepackage{lastpage}
+% Page header
+\KOMAoptions{headsepline=0pt,plainheadsepline=off}
+\ihead*{}
+\chead*{}
+\ohead*{}
+% Page footer
+\KOMAoptions{footsepline=0pt,plainfootsepline=off}
+\ifoot*{Last edited: \svnMaxToday}
+\cfoot*{Page \thepage{} of \pageref{LastPage}}
+\ofoot*{Document v.\svnInfoMaxRevision}
+% Text layout
+\KOMAoption{parskip}{never}
+\newlength{\myparindent}
+\newlength{\myparskip}
+\setlength{\myparindent}{0pt}
+\setlength{\myparskip}{5pt plus 1pt}
+\setparsizes{\myparindent}{\myparskip}{0.1\linewidth plus 1fil}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=3pt,afterindent=false]{section}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=-0.5em,afterindent=false]{paragraph}
+\RaggedRight
+
+% Meeting details
+\title{Meeting Minutes -- Group 1}
+\author{Location: 0 B 6}
+\date{3 February 2016, 16:30--17:00}
+
+\begin{document}
+
+\maketitle
+
+\section*{Present}
+% Members actually present at the meeting
+Kevin Costner,
+Sean Connery (Chair),
+Charles Martin Smith,
+Andy Garcia
+
+\section*{Apologies}
+% Members with a justifiable excuse - remove section if there were none
+Richard Bradford
+
+\section*{Absent}
+% Members without a justifiable excuse - remove section if there were none
+Robert De Niro
+
+\section*{Discussion}
+
+\begin{enumerate}
+
+% There should be an item corresponding to each of the agenda items for this
+% meeting.
+
+\item Minutes from the previous meeting were read and approved.
+
+\item Matters arising out of minutes
+   \begin{enumerate}
+   \item \textbf{3.a}: Follow up on mentioned minute
+   \end{enumerate}
+
+\item Progress report from group members
+   \begin{enumerate}
+   \item Sean Connery explained the difficulty in capturing Al Capone...
+   \end{enumerate}
+
+% Add other items here as necessary
+
+\item Other matters
+   \begin{enumerate}
+   \item First item discussed that was not on the agenda
+   \end{enumerate}
+
+\end{enumerate}
+
+\section*{Actions}
+
+\begin{enumerate}
+
+\item Description of first action to be completed
+\begin{flushright}
+Assigned to: \textbf{Sean Connery} \\
+Deadline: \textbf{ASAP}
+\end{flushright}
+
+\item Description of second action to be completed
+\begin{flushright}
+Assigned to: \textbf{Kevin Costner} \\
+Deadline: \textbf{next meeting}
+\end{flushright}
+
+% Add more actions as necessary
+
+\end{enumerate}
+
+\end{document}

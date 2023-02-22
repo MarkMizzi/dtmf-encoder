@@ -1,0 +1,107 @@
+\documentclass[11pt,a4paper,twocolumn]{scrartcl}
+
+% Support for UTF-8 and non-English letters require the following two
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+% Font packages
+\usepackage[default,defaultsans,oldstyle,proportional]{lato}
+\usepackage[scaled]{beramono}
+\usepackage{sfmath}
+% Optimized justification via improved microtypography on character level
+\usepackage{microtype}
+\usepackage{ragged2e}
+\usepackage[none]{hyphenat} % disable all hyphenation
+\setlength{\emergencystretch}{3em} % allow extra hfill, needed if hyphenation disabled
+%\overfullrule=1mm % mark overfull boxes
+%\usepackage{showframe} % show edges of text areas
+% Page layout
+\usepackage[left=15mm,right=15mm,top=15mm,bottom=20mm,
+   nohead,foot=10mm]{geometry}
+% Page headers
+\usepackage{scrlayer-scrpage}
+\usepackage{lastpage}
+% Page header
+\KOMAoptions{headsepline=0pt,plainheadsepline=off}
+\ihead*{}
+\chead*{}
+\ohead*{}
+% Page footer
+\KOMAoptions{footsepline=0pt,plainfootsepline=off}
+\ifoot*{}
+\cfoot*{Page \thepage{} of \pageref*{LastPage}}
+\ofoot*{}
+% Text layout
+\KOMAoption{parskip}{never}
+\newlength{\myparindent}
+\newlength{\myparskip}
+\setlength{\myparindent}{0pt}
+\setlength{\myparskip}{5pt plus 1pt}
+\setparsizes{\myparindent}{\myparskip}{0.1\linewidth plus 1fil}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=3pt,afterindent=false]{section}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=-0.5em,afterindent=false]{paragraph}
+\RaggedRight
+% SVN metadata
+\usepackage[today,revrange,nofancy]{svninfo}
+\svnInfo $Id$
+% Graphics
+\usepackage{graphicx}
+% Colour definitions
+\usepackage{xcolor}
+\definecolor{secondary}{HTML}{435584}
+% Floats
+\usepackage{subcaption}
+% Listings
+\usepackage{listings}
+\lstset{language=C, basicstyle=\small\ttfamily,
+   aboveskip=0pt, belowskip=0pt}
+\usepackage{upquote} % to use correct glyphs for single-quote in verbatim
+% SI units
+\usepackage{siunitx}
+\sisetup{per-mode = symbol, detect-all = true}
+% Hyperlinks
+\usepackage[
+   colorlinks=true,allcolors=secondary,breaklinks=true,
+   bookmarks=true,unicode=true,bookmarksopen,bookmarksnumbered]{hyperref}
+% Document-specific settings
+\renewcommand\abstractname{Executive Summary}
+
+% Document details
+\title{Design Brief: Group 1}
+\author{
+   Kevin Costner,
+   Sean Connery,
+   Charles Martin Smith,
+   Andy Garcia,
+   Richard Bradford
+   }
+\date{\svnMaxToday, Document v.\svnInfoMaxRevision}
+
+\begin{document}
+
+\maketitle
+
+\abstract{%
+   Write an executive summary for your project. This should not overflow into
+   the next page, should not contain references, and should be readable by
+   a wide audience.
+   }
+
+\section{Introduction}
+Write an introduction, explaining the purpose and background of this project.
+Give a brief description of the game to be implemented.
+References to be cited like so \cite{stroustrup2000}.
+Also include an overview of this document.
+
+\section{System Design}
+
+\section{Management}
+Include a time plan.
+Show task dependencies.
+How are these going to be managed?
+
+\section{Closure}
+
+\bibliographystyle{ieeetr}
+\bibliography{references}
+
+\end{document}
