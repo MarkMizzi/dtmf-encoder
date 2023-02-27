@@ -1,0 +1,167 @@
+\documentclass[11pt,a4paper]{scrartcl}
+
+% Support for UTF-8 and non-English letters require the following two
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+% Font packages
+\usepackage[default,defaultsans,oldstyle,proportional]{lato}
+\usepackage[scaled]{beramono}
+\usepackage{sfmath}
+\usepackage{fancyvrb}
+% Optimized justification via improved microtypography on character level
+\usepackage{microtype}
+\usepackage{ragged2e}
+\usepackage[none]{hyphenat} % disable all hyphenation
+\setlength{\emergencystretch}{3em} % allow extra hfill, needed if hyphenation disabled
+%\overfullrule=1mm % mark overfull boxes
+%\usepackage{showframe} % show edges of text areas
+% Page layout
+\usepackage[left=20mm,right=20mm,top=20mm,bottom=20mm,
+   nohead,foot=10mm]{geometry}
+% SVN metadata
+\usepackage[today,revrange,nofancy]{svninfo}
+\svnInfo $Id$
+% Page headers
+\usepackage{scrlayer-scrpage}
+\usepackage{lastpage}
+% Page header
+\KOMAoptions{headsepline=0pt,plainheadsepline=off}
+\ihead*{}
+\chead*{}
+\ohead*{}
+% Page footer
+\KOMAoptions{footsepline=0pt,plainfootsepline=off}
+\ifoot*{Last edited: \today}
+\cfoot*{Page \thepage{} of \pageref{LastPage}}
+\ofoot*{Document v.\svnInfoMaxRevision}
+% Text layout
+\KOMAoption{parskip}{never}
+\newlength{\myparindent}
+\newlength{\myparskip}
+\setlength{\myparindent}{0pt}
+\setlength{\myparskip}{5pt plus 1pt}
+\setparsizes{\myparindent}{\myparskip}{0.1\linewidth plus 1fil}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=3pt,afterindent=false]{section}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=-0.5em,afterindent=false]{paragraph}
+\RaggedRight
+
+% Meeting details
+\title{Meeting Minutes -- Group 1}
+\author{Location: 0 B 6}
+\date{27 February 2023, 11:00--13:40}
+
+\begin{document}
+
+\maketitle
+
+\section*{Present}
+% Members actually present at the meeting
+Gabriel Apap,
+Mark Mizzi,
+Damjan Filipovic
+
+\section*{Discussion}
+
+\begin{enumerate}
+
+% There should be an item corresponding to each of the agenda items for this
+% meeting.
+
+% Add other items here as necessary
+
+\item Decide on allocation of minuting and agendas for next meetings.
+   \begin{enumerate}
+   \item Decided that since we will not have many meetings a solution that splits this the most equally is ideal.
+   \item Mark proposes a solution. Gabriel does not understand. Mark draws diagram to aid explanation. Agreement on Mark's solution.
+   \item First week Mark - Chair, Gabriel - Minutes. Second week - Chair - Damjan, Mark - Minutes. Third week - Chair - Gabriel, Minutes- Damjan etc
+   \end{enumerate}
+
+\item Go over the project requirements as specified by "customer" (in the handbook).
+   \begin{enumerate}
+      \subsection{Client Requirements}
+      \item Clarification was made that the project requires to build a DTMF encoder only, decoding is not necessary
+      \item It was confirmed that the experiment board contains a DAC. The board is equipped with a 10 Bit DAC.
+      \item The meaning of "prioritised" was interpreted to mean the order of input as determined by the board. Although a human might think they were pressed at the same time
+      however the board can determine exactly which key was pressed first.
+      \item Clarification was made on how queued imput and output is handled. Gabriel misunderstood that an enter key was needed and that all output is handled at once.\\
+      This is not the case, (as Mark explained) input is processed immediately. An output queue is used due to output most likely taking longer than input processing.
+      \item Clarification was made by Gabriel on what symbol length and inter symbol spacing means. Symbol length is how long the dualtone is outputted for for each symbol
+      inter symbol spacing being the time between each symbol output. For example a symbol out put of 250ms with 50ms space between each symbol.
+      \subsection{Functional Requirements}
+      \item Gabriel noted that point F.2 and F.3 are somewhat unclear given that an LCD is itself a digital ouput. Is any other digital output required?\\
+      \textbf{To clarify with Prof Briffa next week (given this is relatively low priority).}
+      \item Clarification was made on point F.7 by Mark on what possible errors could arise. Possible errors included disconnection of peripherals or the application of invalid settings.\\
+      \textbf{To further clarify with Prof Briffa next week.}
+      \subsection{Technical Requirements}
+      \item Mark strongly suggests that the use of C++ should be avoided at all costs due to issues with dynamic linking and incomplete support of certain features.
+      He further argues that we get no benefit from using C++. He notes that the use of libraries would not be available.\\
+      The team decides to take Mark's suggestion. \textbf{The team will only be developing in C.}
+      \item Clarification is needed on what is meant in T.6 by "multi-threaded" given that the CPU is a single core with no hardware threads. Mark posits that the
+      meaning if multi-threaded in this context is the interleaving of interrupt code with regular code as well as the scheduling of regular code.\\
+      \textbf{To clarify with Prof Briffa next week.}
+      \subsection{Organisational Requirements}
+      \item Mark reccommends the use of snake\_case for functions and variable names, and PascalCase for structs. It was decided that all curly brackets will be written on seperate lines.
+      For switch statements, any case code must be written underneath the case declaration. Same line multi variable declaration to be allowed but used with best judgement.
+      Any further code style decisions will be made in future when necessary.
+      \item Commit messages should have a singular line explaining briefly what was changed. Any further clarifications to be made after that.
+      \item \textbf{The team to set up DoxyGen by next week and briefly go over documentation for it.}
+   \end{enumerate}
+
+\item Discuss architectural overview of the design (graphical representation).
+\begin{enumerate}
+   \subsection{Interrupts}
+   \item Keypad input interrupt handler. Mark clarifies a seperate interrupt handler will be needed for each symbol/key. Interrupt handler will push to an output queue to be handled by regular code.
+   \item Potentitally the LCD, \textbf{research must be carried out on how the LCD functions.}
+   \subsection{Regular code}
+   \item Task that processes one output from the output queue. This task will have to write to LCD and produce the tone.
+   \item Access to the hardware will be abstracted using "driver code". Example \verb!write_to_lcd("25")! \verb!output_tone(8)!
+   \item Conversion code from numbers to strings
+\end{enumerate}
+
+\item Allocate research tasks for the team.
+\begin{enumerate}
+\item Gabriel - Research how the LCD functions. Look into amplifier circuit. Look into how DAC functions.
+\item Mark - To look at optimal numbering of symbols to use bitwise tricks. To look into interrupt calling convention. To look at assembly instruction set and build up/find a quick reference (like a cheatsheet).
+\item Damjan - To look into optimal conversion code for number to string. To look into thread safe and atomic data structures.
+\end{enumerate}
+
+\item Other matters
+\begin{enumerate}
+\item Next meeting to be held on the 2nd March
+\end{enumerate}
+
+\end{enumerate}
+
+\section*{Actions}
+
+\begin{enumerate}
+
+\item Make necessary clarifications with Prof Briffa
+\begin{flushright}
+Assigned to: \textbf{Team} \\
+Deadline: \textbf{6\textsuperscript{th} March}
+\end{flushright}
+
+\item Research
+\begin{flushright}
+Assigned to: \textbf{Mark} \\
+Deadline: \textbf{next meeting}
+\end{flushright}
+
+\item Research
+\begin{flushright}
+Assigned to: \textbf{Damjan} \\
+Deadline: \textbf{next meeting}
+\end{flushright}
+
+\item Research
+\begin{flushright}
+Assigned to: \textbf{Gabriel} \\
+Deadline: \textbf{next meeting}
+\end{flushright}
+
+% Add more actions as necessary
+
+\end{enumerate}
+
+\end{document}
