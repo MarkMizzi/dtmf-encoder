@@ -31,4 +31,4 @@ $(TARGETS): $(SOURCES)
 	pdflatex $<
 
 clean:
-	-/bin/rm -f *.aux *.log *.fls *.fdb_latexmk *.pdf
+	-/bin/rm -f *.aux *.log *.fls *.synctex.gz *.fdb_latexmk *.pdf
