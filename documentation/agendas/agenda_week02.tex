@@ -1,0 +1,80 @@
+\documentclass[11pt,a4paper]{scrartcl}
+
+% Support for UTF-8 and non-English letters require the following two
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+% Font packages
+\usepackage[default,defaultsans,oldstyle,proportional]{lato}
+\usepackage[scaled]{beramono}
+\usepackage{sfmath}
+% Optimized justification via improved microtypography on character level
+\usepackage{microtype}
+\usepackage{ragged2e}
+\usepackage[none]{hyphenat} % disable all hyphenation
+\setlength{\emergencystretch}{3em} % allow extra hfill, needed if hyphenation disabled
+%\overfullrule=1mm % mark overfull boxes
+%\usepackage{showframe} % show edges of text areas
+% Page layout
+\usepackage[left=20mm,right=20mm,top=20mm,bottom=20mm,
+   nohead,foot=10mm]{geometry}
+% SVN metadata
+\usepackage[today,revrange,nofancy]{svninfo}
+\svnInfo $Id: agenda_week01.tex 6613 2023-02-27 12:29:16Z mmiz0052 $
+% Page headers
+\usepackage{scrlayer-scrpage}
+\usepackage{lastpage}
+% Page header
+\KOMAoptions{headsepline=0pt,plainheadsepline=off}
+\ihead*{}
+\chead*{}
+\ohead*{}
+% Page footer
+\KOMAoptions{footsepline=0pt,plainfootsepline=off}
+\ifoot*{Last edited: \today}
+\cfoot*{Page \thepage{} of \pageref{LastPage}}
+\ofoot*{Document v.\svnInfoMaxRevision}
+% Text layout
+\KOMAoption{parskip}{never}
+\newlength{\myparindent}
+\newlength{\myparskip}
+\setlength{\myparindent}{0pt}
+\setlength{\myparskip}{5pt plus 1pt}
+\setparsizes{\myparindent}{\myparskip}{0.1\linewidth plus 1fil}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=3pt,afterindent=false]{section}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=-0.5em,afterindent=false]{paragraph}
+\RaggedRight
+
+% Meeting details
+\title{Meeting Agenda -- Group 5}
+\author{Location: 0 B 6}
+\date{27 February 2023, 11:00 - 12:00}
+
+\begin{document}
+
+\maketitle
+\begin{center}
+\begin{tabular}{ll}
+\textbf{Chair:}   & Damjan Filipovic \\
+\textbf{Minutes:} & Mark Mizzi
+\end{tabular}
+\end{center}
+
+\begin{enumerate}
+
+    \item Decide on allocation of minuting and agendas for next meetings.
+
+    \item Go over the project requirements as specified by "customer" (in the handbook).
+    
+    \item Discuss architectural overview of the design (graphical representation).
+    
+    \item Discuss the research done by every team member based on the research tasks assigned in the previous meeting.
+
+    \item Measure the response times of powering on each column and then polling each row for triggers and polling each column after a certain row triggered.
+
+    \item Based on the results from item 5 decide on which approach to take during implementation.
+    
+    \item Other matters.
+
+\end{enumerate}
+
+\end{document}
