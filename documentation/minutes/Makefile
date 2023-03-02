@@ -24,11 +24,11 @@ $(TARGETS): $(SOURCES)
 # Rules for main compilation
 
 %.aux: %.tex
-	pdflatex $<
+	pdflatex --shell-escape $<
 
 %.pdf: %.tex %.aux
-	pdflatex $<
-	pdflatex $<
+	pdflatex --shell-escape $<
+	pdflatex --shell-escape $<
 
 clean:
 	-/bin/rm -f *.aux *.log *.fls *.synctex.gz *.fdb_latexmk *.pdf
