@@ -1,0 +1,164 @@
+\documentclass[11pt,a4paper]{scrartcl}
+
+% Support for UTF-8 and non-English letters require the following two
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+% Font packages
+\usepackage[default,defaultsans,oldstyle,proportional]{lato}
+\usepackage[scaled]{beramono}
+\usepackage{sfmath}
+% Optimized justification via improved microtypography on character level
+\usepackage{microtype}
+\usepackage{ragged2e}
+\usepackage[none]{hyphenat} % disable all hyphenation
+\setlength{\emergencystretch}{3em} % allow extra hfill, needed if hyphenation disabled
+%\overfullrule=1mm % mark overfull boxes
+%\usepackage{showframe} % show edges of text areas
+% Page layout
+\usepackage[left=20mm,right=20mm,top=20mm,bottom=20mm,
+   nohead,foot=10mm]{geometry}
+% SVN metadata
+\usepackage[today,revrange,nofancy]{svninfo}
+\svnInfo $Id: minutes_week03.tex 6594 2023-03-09 15:50:48Z jbri2 $
+% Page headers
+\usepackage{scrlayer-scrpage}
+\usepackage{lastpage}
+% Code highlighting
+\usepackage{minted}
+
+% Page header
+\KOMAoptions{headsepline=0pt,plainheadsepline=off}
+\ihead*{}
+\chead*{}
+\ohead*{}
+% Page footer
+\KOMAoptions{footsepline=0pt,plainfootsepline=off}
+\ifoot*{Last edited: \today}
+\cfoot*{Page \thepage{} of \pageref{LastPage}}
+\ofoot*{Document v.\svnInfoMaxRevision}
+% Text layout
+\KOMAoption{parskip}{never}
+\newlength{\myparindent}
+\newlength{\myparskip}
+\setlength{\myparindent}{0pt}
+\setlength{\myparskip}{5pt plus 1pt}
+\setparsizes{\myparindent}{\myparskip}{0.1\linewidth plus 1fil}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=3pt,afterindent=false]{section}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=-0.5em,afterindent=false]{paragraph}
+\RaggedRight
+
+% Meeting details
+\title{Meeting Minutes -- Group 5}
+\author{Location: 0 B 6}
+\date{1 March 2023, 14:30--17:30}
+
+\begin{document}
+
+\maketitle
+
+\section*{Present}
+% Members actually present at the meeting
+Mark Mizzi,
+Damjan Filipovic (Minutes),
+Gabriel Apap    (Chair)
+
+\section*{Discussion}
+
+\begin{enumerate}
+
+% There should be an item corresponding to each of the agenda items for this
+% meeting.
+
+\item Minutes from the previous meeting were read and approved.
+
+\item Matters arising out of minutes
+    Some issues were brought up:
+    \begin{enumerate}
+        \item After discussion with professor Briffa it was reminded that a timer interrupt was used to update the DAC.
+    \end{enumerate}
+
+\item Progress report from group members
+   \begin{enumerate}
+        \item Gabriel did not have time to research how LCD functions and how the encoding from string to LCD could be done. This is postponed to the next week's meeting.
+        \item Damjan researched some points about the lock free queue, however, due to the large nature of the field, more time is required. This is postponed to the next week's meeting.
+        \item Mark, did not have a lot of time to look into the assembly, however, he did have time to look at the hardware excpetions. 
+            The assembly discussion is postponed to the next week's meeting.
+   \end{enumerate}
+
+% Add other items here as necessary
+
+\item Reading and approval of minutes from previous meeting
+
+\item Matters arising from minutes
+\begin{enumerate}
+   \item  Following a discussion with professor Briffa we were reminded that we have to use a timer interrupt to drive the DAC.
+\end{enumerate}
+
+\item Progress report from group members
+   \begin{enumerate}
+    \item Gabriel did not have time to research about the LCD. Discussion will be postponed to the next week's meeting.
+    \item Damjan did not have time to research everything about the lock free queue due to the large nature of the field. Discussion will be postponed to the next week's meeting.
+    \item Mark did not research about the assembly however he did read about the hardware exceptions. Discussion about the assembly will be posponed to the next week's meeting.
+   \end{enumerate}
+
+\item Discuss possible settings
+    \begin{enumerate}
+        \item Increase/decrease resolution of tone. This is controlled by the k-parameter in the specified algorithm.
+        \item Symbol spacing.
+        \item Inter-symbol spacing.
+        \item Volumne(analog control)
+        \item Purpose of the external LEDs - on/off indicator and input registration
+        \item Use of different profiles for modifying the settings discussed above, for the encoder, etc... (quick dial)
+    \end{enumerate}
+
+\item Set up project
+    \begin{enumerate}
+        \item The group is unsure whether commiting to the SVN would as well copy the path.
+        \item The team agreed to ask professor Johan aout the problem listed above.
+    \end{enumerate}
+
+\item Discuss hardware
+\begin{enumerate}
+    \subsection{Exception Model}
+        \item Mark points out that there are multiple hardware exception types.
+        \item Each registered exception is identified by a unique exception number.
+        \item Some excpetions are built-in whilst others are defined by the programmer.
+        \item Excpetion addresses are stored in a vector table in order of their exception number.
+        \item Each exception has a priority number seperate to its exception number. This determines its priority over other exceptions.
+        \item Lower priority number means higher priority.
+        \item High priority excpetions can preempt lower priority ones. In the case of 2 pending excpetions with the same priority, the excpetion number is used as a tie breaker.
+        \item A running exception cannot be interrupted by another exception of the same priority.
+        \item Reset is a built in interrupt - resets everything. Thus, it is highest priority. In the actual code there will be a reset handler to deal with it.
+        \item Another built-in interrupt is the systick interrupt. This allows for timer interrupts.
+        \item One of the interrupt handlers can be set as non-maskable. This means no other interrupt can interrupt it.
+    \end{enumerate}
+
+\item Discuss and delegate work for design brief
+    \begin{enumerate}
+        \item Mark clarifies that an executive summary is a brief informal description of our design.
+        \item Introduction should be a general description of the problem that the team is trying to solve.
+        \item Gabriel clarifies that the summary should be similar to an abstract, whilst the introduction sould list out the structure of the entire document.
+        \item Mark is assigned with the system design and references sections of the design brief.
+        \item Damjan is assigned with management and closure sections of the design brief.
+        \item Gabriel is assigned with the executive summary and introduction sections of the design brief.
+        \item Mark poiints out that the seperation of concerns has to be specified in order to facilitate time management and to specify system design.
+        \begin{enumerate}
+            \subsection{Modules}
+            \item LCD Driver to be adapted from Labs
+            \item DAC Driver code (Timer interrupt that computes the tone, enabling and disabling timer interrupt)
+            \item LED Driver
+            \item Button Matrix Driver
+            \item The Lock Free Queue (only the pop instruction needs to be thread safe since pushes are done by Non-Maskable Interrupts)
+        \end{enumerate}
+    \end{enumerate}
+
+\item Other matters
+    \begin{enumerate}
+        \item No other matters
+    \end{enumerate}
+
+% Add more actions as necessary
+
+\end{enumerate}
+
+\end{document}
