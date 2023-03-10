@@ -98,7 +98,9 @@ Also include an overview of this document.
 
 \subsection{System overview}
 
-The system will have two modes of operation, a mode for settings and 
+The system will have two modes of operation, a mode for settings and a normal mode.
+
+One tone is produced at a time: system limitation.
 
 \subsection{Software Modules}
 
@@ -134,7 +136,6 @@ Their responsibilities are as follows:
       The behaviour of this component partially depends on the system's mode of operation.   
       \begin{enumerate}
          \item Polling cycle for the button matrix (this is used in all modes).
-         \item Resets counter array.
          \item Displays buttons pressed on the LCD (this is used in normal mode).
          \item Pass buttons pressed via function-call return (this is used in the settings and entry modes).
          \item Keypad-driven interrupt handler logic (this is used in normal mode). Explained in a section below.
@@ -148,8 +149,7 @@ Their responsibilities are as follows:
       \begin{enumerate}
          \item Read settings related to tone generation, and adapt accordingly.
          \item Keep track of a global counter in between handler invocations in order to track tone generation progress.
-         \item Keep tones being generated in a global array that is NOT torn down between invocations of the timer interrupt.
-         \item Produce DTMF tone when the timer interrupt is invoked.
+         \item Produce DTMF tone sample when the timer interrupt is invoked.
       \end{enumerate}
 
    \item Persistent storage driver
@@ -162,7 +162,7 @@ Their responsibilities are as follows:
    \item LED driver
       \begin{enumerate}
          \item Turn on LED on command.
-         \item Turn off LED on comamnd.
+         \item Turn off LED on command.
       \end{enumerate}
 
    \item LCD driver
@@ -195,14 +195,6 @@ The timer interrupt handler does the following:
    \item If yes, generates the tone. Increment the global sample counter.
    \item If no, checks the lock free queue. If this is not empty, it starts a new timer interrupt to generate the next tone.
 \end{enumerate}
-
-How do we deal with multiple tones being generated at the same time?
-
-- If two tones have same base frequency, they interfere with each other.
-- Even if not, they can still interfere as both are trying to drive the DAC, creating weird aliasing effects.
-
-- If we use an output queue, how do we keep the system from getting out of sync with user's presses for long generation interval?
-- Also, how do we trigger the next timer interrupt in the queue? Piggybacking on the interrupt handler (if counter reached end, enable next interrupt).
 
 \subsection{Design phases}
 
