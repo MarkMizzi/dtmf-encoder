@@ -1,0 +1,33 @@
+@startuml
+left to right direction
+
+node "Data Structures" {
+    [Lock-free queue]
+}
+
+node Drivers {
+ [DAC driver]
+ [LED driver]
+ [LCD driver]
+ [Keypad driver]
+ [Persistent storage driver]
+}
+
+node System {
+ [Settings]
+ [Mode loader]
+}
+
+[Keypad driver] --> [LCD driver]
+[Settings] --> [LCD driver]
+[Settings] --> [Keypad driver]
+[Settings] --> [Persistent storage driver]
+[Mode loader] --> [Settings]
+[Mode loader] --> [Persistent storage driver]
+[Mode loader] --> [LED driver]
+[Mode loader] --> [LCD driver]
+
+[Keypad driver] --> [Lock-free queue]
+[DAC driver] --> [Lock-free queue]
+
+@enduml
