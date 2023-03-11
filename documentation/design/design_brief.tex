@@ -226,9 +226,94 @@ The plan is hence to implement each of these designs in turn. When one implement
 sophisticated design.
 
 \section{Management}
-Include a time plan.
-Show task dependencies.
-How are these going to be managed?
+\subsection{Final Deadline}
+Before discussing any specific task details, an approximation for the final deadline will be set to 10th May. This will ensure that the work is done at a proper pace whilst also
+leaving enough room for any necessary adjustments that might need to be done towards the end of the project.
+
+\subsection{Tasks}
+As mentioned in the previous section, the system is designed in such a way to adhere to a good seperation of concerns. This will involve splitting the above-mentioned software
+components into multiple tasks and sub-tasks (mentioned below), whereas each one of them will have a fairly allocated time-frame for completion.
+The tasks, decided-on by the team, and their approximate deadlines are the following:
+\subsubsection{Drivers}
+\begin{enumerate}
+    \item LCD Driver - Deadline: 8 Apr, 2023
+    \begin{enumerate}
+        \item Symbol and C-String to LCD function
+        \item Display function
+    \end{enumerate}
+    \item Keypad Driver - Deadline: 8 Apr, 2023
+    \begin{enumerate}
+        \item Polling Cycle function for the keypad
+        \item Keypad driven interrupt
+    \end{enumerate}
+    \item LED Driver - Deadline: 8 Apr, 2023
+    \begin{enumerate}
+        \item LED On function
+        \item LED Off function
+    \end{enumerate}
+    \item Persistent Storage Driver - Deadline: 16 Apr, 2023
+    \begin{enumerate}
+        \item Serialising Data
+        \item Persisting Data (i.e. Storing Data to flash memory - will involve a wear leveling algorithm)
+        \item Loading Data
+        \item Deserializing Data
+    \end{enumerate}
+    \item DAC Driver (Inclues the Timer Interrupt Handler) - Deadline: 20 Apr, 2023
+    \begin{enumerate}
+        \item Timer interrupt handler enabler and timer duration setter function.
+        \item 16 Timer interrupt handlers (1 per tone)
+    \end{enumerate}
+\end{enumerate}
+
+\subsubsection{Data Structures}
+\begin{enumerate}
+    \item Lock-Free queue - Deadline: 01 Apr, 2023
+    \begin{enumerate}
+        \item Create Queue function
+        \item Atomic Enqueue function
+        \item Atomic Dequeue function
+    \end{enumerate}
+\end{enumerate}
+
+\subsubsection{System}
+\begin{enumerate}
+    \item Tone generation flag and tone generation counter - Deadline: 16 Apr, 2023
+    \item System configuration C struct - Deadline:  16 Apr, 2023
+    \item Mode loader - Deadline: 16 Apr, 2023
+    \begin{enumerate}
+        \item Display Options function (through LCD Driver)
+        \item Load settings/normal mode functions
+    \end{enumerate}
+    \item Settings Mode - Deadline: 27 Apr, 2023
+    \begin{enumerate}
+        \item Display settings function (through LCD Driver)
+        \item Save settings function (through persistent storage driver)
+    \end{enumerate}
+\end{enumerate}
+
+\subsection{Task Dependencies}
+When considering the inter-dependencies of the tasks listed above, there is a discrete order of task development which should be followed, which ensures that each subsequent task
+has adequate resources to be accomplished. The order is the following:
+\begin{enumerate}
+    \item Lock-Free Queue
+    The lock-free queue must be completed before anything else as it is an essential data structure that multiple drivers are going to use. Once the lock-free queue has been
+    coded, it can be used throughout the rest of the development.
+    It is also a task that might be more challenging thus it would make sense to complete it first.
+    \item LCD Driver
+    Having a working LCD Driver from the early stages of the development will help the development of other components, such as the Mode loader and the Keypad Driver.
+    \item LED Driver
+    Since the LEDs will be turned on upon key press registration and the currently selected mode of the device, having a working LED Driver is going to be preferable when developing
+    other essential components such as the keypad driver and the mode loader.
+    \item Keypad Driver
+    The Keypad Driver is an essential component which will be indirectly used by multiple other components and thus would facilitate their development.
+    \item Persistent Storage Driver
+    The Persistent Storage Driver is necessary for the rest of the components. For example, the DAC Driver will reference the lookup table stored on the Persistent Storage and
+    the settings mode of the device will load the settings stored in flash memory. Therefore, it is preferable that the persistent storage driver is implemented before these.
+    \item Global Variables, structs and Settings Mode
+    Having the global variables, the C-string and the settings mode in place will facilitate the development of the DAC driver as it will work basked on the values insde the C-struct.
+    \item DAC Driver
+    Having the persistent storage driver, the settings and the lock-free queue, the DAC driver can be implemented.
+\end{enumerate}
 
 \section{Closure}
 
