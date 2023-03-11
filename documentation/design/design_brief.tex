@@ -81,9 +81,12 @@
 \maketitle
 
 \abstract{%
-   Write an executive summary for your project. This should not overflow into
-   the next page, should not contain references, and should be readable by
-   a wide audience.
+   A Dual Tone Multi Frequency (DTMF for short) encoder is a technology used for devices or servers to communicate with other devices or servers over a standard analogue telephone line. This is mainly used for automated switchboards for calls; however, this is also used in dial up modems, call menus, remote control systems, telephone banking, and other applications. It functions by converting a possible 16 symbols on a keypad (1-9, A-D, * and \#) into a possible combination of 4 high frequencies (representing the keypad columns) and 4 low frequencies (representing the keypad rows). These frequencies are within the range of frequencies used to transmit the human voice allowing it to be transmitted over telephone lines as audible sounds that are however hard to reproduce by humans. The combination of signals is then received by the decoder and analysed to find which 2 signals make up the combination and thus which keypad symbol was pressed. \\[5mm]
+
+   Implementing this on a microcontroller requires hardware interfacing, DTMF encoding techniques as well as low level microcontroller programming given that a microcontroller does not come pre-packaged with an operating system that abstracts low level system calls and basic hardware handling. Although this makes the job of the programmer harder it also gives them the opportunity to make their code very size and performance efficient by only including code that is specific to the task required. The design will make use of a display to show the user what keys they have pressed as well as to display any messages or errors. LEDs will also be used as indicators for different modes or statuses. The Digital to Analog Converter's output, which is used to turn the binary value from the program into an analogue electrical signal, is then connected to an amplifier so that a speaker can play the tone.
+
+
+
    }
 
 \section{Introduction}
