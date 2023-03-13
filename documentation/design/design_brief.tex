@@ -62,6 +62,8 @@
 \usepackage[
    colorlinks=true,allcolors=secondary,breaklinks=true,
    bookmarks=true,unicode=true,bookmarksopen,bookmarksnumbered]{hyperref}
+\usepackage{multicol}
+
 % Document-specific settings
 \renewcommand\abstractname{Executive Summary}
 
@@ -79,35 +81,23 @@
 \maketitle
 
 \abstract{%
-   Dual Tone Multi Frequency (DTMF for short) encoding is a technology used for devices (including servers) to communicate with other devices over a standard analogue telephone line. [citation needed]
-   This is mainly used for automated switchboards for calls; however, this is also used in dial up modems, call menus, remote control systems, telephone banking, and other applications. [citation needed]
-   
-   The technology functions by converting each of 16 symbols on a keypad (1-9, A-D, * and \#) into a special tone. The tone consists of a sum of two sine waves, whose frequency is determined
-   by pairwise combination of 4 high frequencies (representing the keypad columns) and 4 low frequencies (representing the keypad rows).
-   
-   The frequencies used fall within the same range as the human voice, allowing the tones to be transmitted over telephone lines as audible sounds. 
-   The tone is received by a decoder, and its spectrum is analysed to determine the keypad symbol pressed.
-
-   This document outlines the design of a DTMF encoding system based on a microcontroller board. The system described makes use of an LCD display to show the user 
-   what keys they have pressed as well as to display any messages or errors. An LED is also be used as an indicator of the system's state. 
-   An on-board DAC, in conjunction with an amplifier circuit and speaker are used to generate and amplify the DTMF tones.
+   This document outlines the design of a DTMF encoding system based on a microcontroller board. The system described makes use of an LCD display to show the user what keys they have pressed as well as to display any messages or errors. An LED is also be used as an indicator of the system's state. An on-board DAC, in conjunction with an amplifier circuit and speaker are used to generate and amplify the DTMF tones.
    }
 
 \section{Introduction}
+
+   Dual Tone Multi Frequency (DTMF for short) encoding is a technology used to communicate with other devices over a standard analogue telephone line \cite{sl:an218}. This is mainly used for automated switchboards for calls; however, this is also used in remote control systems, telephone banking, and other applications \cite{sl:an218}.
+
+   The technology functions by converting each of 16 symbols on a keypad (1-9, A-D, * and \#) into a special tone. The tone consists of a sum of two sine waves, whose frequency is determined by pairwise combination of 4 high frequencies (representing the keypad columns) and 4 low frequencies (representing the keypad rows) \cite{sl:an218}.
+
    The goal of this project is to implement a DTMF encoding system based on the Embedded Artists LPC4088 microcontroller board.
 
-   Microcontroller programming poses several technical challenges. Microcontrollers are designed for use in real-time systems, and hence do not have an operating system which deals with the issue 
-   of task management. Task scheduling has to be handled explicitly by the programmer, through the use of an ad-hoc scheduler and/or interrupt handlers.
+   Microcontrollers are designed for use in real-time systems, and hence do not have an operating system which deals with the issue of task management. Task scheduling has to be handled explicitly by the programmer, through the use of an ad-hoc scheduler and/or interrupt handlers.
 
-   In addition, microcontrollers are generally low-cost systems with limited hardware resources, and hence require the use of low-level programming tricks to achieve efficiency and performance
-   despite the resource constraints.
+   In addition, microcontrollers are generally low-cost systems with limited hardware resources, and hence require the use of low-level programming tricks to achieve efficiency and performance despite the resource constraints.
    
-   The DTMF system implemented will make use of several I/O devices, including
-   \begin{enumerate}
-      \item An LCD used to convey user input or settings options to the user.
-      \item An indicator LED which turns on when the system is booted.
-      \item A keypad input device used to choose between settings or to input DTMF symbols.
-   \end{enumerate}
+   The DTMF system implemented will make use of several I/O devices, including an LCD used to convey user input or settings options to the user,
+   an indicator LED which turns on when the system is booted, and a keypad input device used to choose between settings or to input DTMF symbols.
 
    On boot-up, the system will prompt the user to enter one of two operational modes: settings or normal mode.
 
@@ -118,15 +108,15 @@
    \begin{enumerate}
       \item Inter-symbol spacing, i.e. the delay between two consecutive tones being produced.
       \item Symbol length, i.e. the duration for which a single tone is produced.
-      \item Tone resolution. This setting affects the sampling frequency of the tone produced. A higher tone resolution produces a better quality tone, but is more computationally intensive.
+      \item Tone resolution. This setting affects the sampling frequency of the tone produced.
       \item Reboot system. This saves the chosen options and resets the system.
    \end{enumerate}
 
    When the system enters normal mode, options are loaded from flash memory, and the system behaves as a DTMF encoder, 
    producing tones when the user presses keys.
 
-   Section \ref{system-design} describes the proposed design for the DTMF encoding system. The system's architecture is described in detail in subsection \ref{system-arch}. 
-   Subsection \ref{polling-method} clarifies some implementation details regarding the polling cycle used to drive the keypad input.
+   Section \ref{system-design} describes the proposed design for the DTMF encoding system. The system's architecture is described in subsection \ref{system-arch}. 
+   Subsection \ref{polling-method} clarifies some implementation details regarding the keypad input.
 
    Section \ref{schedule} outlines a breakdown of the system's implementation into individual tasks, as well as a schedule for implementing these tasks.
 
@@ -137,57 +127,41 @@
 To implement these features while adhering to good seperation of concerns, the system must make use of several software components.
 The proposed software components are shown in Figure \ref{fig:software_components}.
 
-\begin{figure}
+\begin{figure*}
    \centering
-   \includegraphics[width=0.48\textwidth]{software_components}
+   \includegraphics[width=0.92\textwidth]{software_components}
    \caption{Software components proposed for the system, grouped by functionality. Arrows between components indicate caller-callee dependencies.}
    \label{fig:software_components}
-\end{figure}
+\end{figure*}
 
-Not shown in this figure is the use of several global variables to store the state of the system. These include:
-
-\begin{enumerate}
-   \item A global, thread-safe flag which indicates whether a tone is being generated.
-   \item A global counter used to keep track of tone generation in between interrupt handler invocations (see below).
-   \item A global C \verb!struct! holding user configuration of the system. 
-      In normal mode, this is loaded from flash memory, and should be read-only.
-      In settings mode, the configuration is loaded from flash memory or initialized with sane defaults depending on whether the user has already 
-      configured the system. In this mode, the \verb!struct! can be modified.
-   \item A global lookup-table containing samples of the $\sin$ function. This is loaded in normal mode, and should be read-only.
-\end{enumerate}
+Not shown in this figure is the use of several global variables to store the state of the system. These include 
+(i) a thread-safe flag which indicates whether a tone is being generated,
+(ii) a counter used to keep track of tone generation in between interrupt handler invocations,
+(iii) a readonly lookup-table containing samples of the $\sin$ function, and
+(iii) a \verb!struct! holding user configuration of the system.
 
 It is also worth noting that the lock-free queue indicated in the design is globally allocated, and is accessed by several ``threads'' of execution.
 
 The responsibilities and features of each of the software components indicated in the figure will now be described.
 
-The \textbf{mode loader} is the entry point of the system. It turns on the indicator LED (through the use of the LED driver), and presents the user with options
-for choosing between settings mode or normal mode (through the LCD driver). It must also process any key press which indicates the user's choice 
-(through the keypad driver), and load the code for settings or normal mode (through a function call).
+The \textbf{mode loader} is the entry point of the system. It turns on the indicator LED, and presents the user with options for choosing between settings mode or normal mode. It must also process any key press which indicates the user's choice, and load the code for settings or normal mode (through a function call).
 
-The \textbf{settings} component will contain the code for settings mode. It must present the user with options for configuring the system (through the use of the
-LCD driver), and process the user's choice (through the use of the button matrix driver). When the user chooses to re-boot the system, it must also persist the
-chosen configuration to flash memory (through the use of the persistent storage driver).
+The \textbf{settings} component will contain the code for settings mode. It must present the user with options for configuring the system, and process the user's choice. When the user chooses to re-boot the system, it must also persist the chosen configuration to flash memory.
 
 The \textbf{DAC driver} is central to system operation, as it contains functions which generate the DTMF tones. The module should provide a function which, 
 given a symbol, enables a timer interrupt handler (depending on what tone is to be produced) and sets the timer duration to the sampling frequency of the tone.
 
-The module should also implement 16 timer interrupt handlers (one for each tone) which can produce tone samples and 
-drive the DAC when a tone is being generated. The interrupt handlers will be similar in behaviour, and will share a lot of their code. However
-there are two benefits in having an interrupt handler for each tone. Firstly, there is no need to keep track of which tone is being generated in between invocations
-of the interrupt handler. This reduces the amount of global state used by the system. Secondly, specializing the code depending on the tone to be produced allows the
-compiler to aggressively optimize the handlers in question, e.g. applying constant division optimization.
+The module should also implement 16 timer interrupt handlers (one for each tone) to produce tone samples and 
+drive the DAC. The interrupt handlers will be similar in behaviour, and will share a lot of their code.The benefits of having an interrupt handler for each tone is that it reduces the amount of global state used by the system and allows the compiler to aggressively optimize the handlers in question, e.g. applying constant division optimization.
 
-The behaviour of each interrupt handler is shown in the control flow diagram in Figure \ref{fig:tone_interrupt_cfd}. Note the ``bootstrapping'' behaviour of tone
-generation. When an interrupt handler detects that tone generation is done, it checks the queue for the next symbol whose tone is to be generated. 
-If there is one, it pops it off the queue, and sets a timer according to the inter-symbol spacing. It also enables a handler for the timer interrupt which
-starts off the next tone's interrupt handler. Note that the check and pop from the queue must be done atomically to avoid data races.
+The behaviour of each interrupt handler is shown in the control flow diagram in Figure \ref{fig:tone_interrupt_cfd}.
 
-\begin{figure}
+\begin{figure*}
    \centering
-   \includegraphics[width=0.48\textwidth]{tone_interrupt_cfd}
+   \includegraphics[width=0.92\textwidth]{tone_interrupt_cfd}
    \caption{Control flow diagram illustrating behaviour of tone-generating interrupt handlers}
    \label{fig:tone_interrupt_cfd}
-\end{figure}
+\end{figure*}
 
 The \textbf{keypad driver} component provides an abstraction layer over the keypad. It must implement a single polling cycle (as a function) for use in other modules.
 
@@ -202,8 +176,7 @@ In addition, it must implement a method that whilst running the polling cycle, p
 This method will be used in normal mode to process key presses.
 
 The \textbf{persistent storage driver} provides an abstraction layer over the flash memory. It provides functions to serialize and deserialize the C structs 
-which need to be stored into a byte stream, and allows for loading or storing serialized data from/to flash memory. The use of a wear leveling algorithm when storing data
-is essential to prevent the flash memory from degrading quickly\cite{silberschatz2018operating}.
+which need to be stored into a byte stream, and allows for loading or storing serialized data from/to flash memory. The use of a wear leveling algorithm when storing data is essential to prevent the flash memory from degrading quickly\cite{silberschatz2018operating}.
 
 The \textbf{LED driver} provides methods to turn the indicator LED on or off.
 
@@ -223,81 +196,38 @@ There are several ways in which the polling cycle procedure that processes user 
 The simplest method is to run the procedure in application mode, with a set period of busy waiting in between invocations of the method to avoid spurious input.
 (A human user will keep a key pressed for several clock cycles.)
 
-A more sophisticated option is to run the procedure as an interrupt handler for a timer interrupt, with the timer duration set to avoid spurious input. In this
-version, the processor has no application code to run and can be put in sleep mode in between interrupt invocations. While more efficient than the busy-waiting
-approach, this method can still invoke the interrupt handler when there is no input to process.
+A more sophisticated option is to run the procedure as an interrupt handler for a timer interrupt, with the timer duration set to avoid spurious input. In this version, the processor has no application code to run and can be put in sleep mode in between interrupt invocations. While more efficient than the busy-waiting approach, this method can still invoke the interrupt handler when there is no input to process.
 
 A final, more efficient approach is to have a keypad-driven interrupt handler. In this approach, the columns of the keypad are set high, and pressing any key
 triggers a pin interrupt. The interrupt handler then invokes the polling method to handle the key pressed.
 
-Each of these design choices is more sophisticated than the one before it, while re-using much of the same code. 
-The plan is hence to implement each of these designs in turn. When one implementation has been successfully tested, the team will move on to implementing a more
-sophisticated design.
+Each of these design choices is more sophisticated than the one before it, while re-using much of the same code. The plan is to implement each of these designs in turn. When one implementation has been successfully tested, the team will move on to implementing a more sophisticated design.
 
 \section{Management} \label{schedule}
 \subsection{Final Deadline}
-Before discussing any specific task details, an approximation for the final deadline will be set to 10th May. This will ensure that the work is done at a proper pace whilst also
-leaving enough room for any necessary adjustments that might need to be done towards the end of the project.
+The final deadline will be set to 10th May. This will ensure that the work is done at a proper pace whilst leaving enough room for any necessary 
+adjustments.
 
 \subsection{Tasks}
-As mentioned in the previous section, the system is designed in such a way to adhere to a good seperation of concerns. This will involve splitting the above-mentioned software
-components into multiple tasks and sub-tasks (mentioned below), whereas each one of them will have a fairly allocated time-frame for completion.
-The tasks, decided-on by the team, and their approximate deadlines are the following:
+To implement the system, the above-mentioned software components have to be split into multiple sub-tasks. Each task will have a fairly allocated time-frame for completion. The deadlines for each task are as follows:
 \subsubsection{Drivers}
 \begin{enumerate}
-    \item LCD Driver - Deadline: 8 Apr, 2023
-    \begin{enumerate}
-        \item Symbol and C-String to LCD function
-        \item Display function
-    \end{enumerate}
-    \item Keypad Driver - Deadline: 8 Apr, 2023
-    \begin{enumerate}
-        \item Polling Cycle function for the keypad
-        \item Keypad driven interrupt
-    \end{enumerate}
-    \item LED Driver - Deadline: 8 Apr, 2023
-    \begin{enumerate}
-        \item LED On function
-        \item LED Off function
-    \end{enumerate}
-    \item Persistent Storage Driver - Deadline: 16 Apr, 2023
-    \begin{enumerate}
-        \item Serialising Data
-        \item Persisting Data (i.e. Storing Data to flash memory - will involve a wear leveling algorithm)
-        \item Loading Data
-        \item Deserializing Data
-    \end{enumerate}
-    \item DAC Driver (Inclues the Timer Interrupt Handler) - Deadline: 20 Apr, 2023
-    \begin{enumerate}
-        \item Timer interrupt handler enabler and timer duration setter function.
-        \item 16 Timer interrupt handlers (1 per tone)
-    \end{enumerate}
+    \item LCD Driver - Deadline: 8 Apr, 2023. Subtasks: Symbol and C-String to LCD function, Display function.
+    \item Keypad Driver - Deadline: 8 Apr, 2023. Subtasks: Polling Cycle function for the keypad, Keypad driven interrupt.
+    \item LED Driver - Deadline: 8 Apr, 2023. Subtasks: LED On function, LED Off function.
+    \item Persistent Storage Driver - Deadline: 16 Apr, 2023. Subtasks: Serialising Data, Persisting Data, Loading Data, Deserializing Data.
+    \item DAC Driver - Deadline: 20 Apr, 2023. Subtasks: Timer interrupt handler enable method, Set timer duration function, Interrupt handlers.
 \end{enumerate}
 
 \subsubsection{Data Structures}
 \begin{enumerate}
-    \item Lock-Free queue - Deadline: 01 Apr, 2023
-    \begin{enumerate}
-        \item Create Queue function
-        \item Atomic Enqueue function
-        \item Atomic Dequeue function
-    \end{enumerate}
+    \item Lock-Free queue - Deadline: 01 Apr, 2023. Subtasks: Atomic Enqueue function, Atomic Check and Dequeue function.
 \end{enumerate}
 
 \subsubsection{System}
 \begin{enumerate}
-    \item Tone generation flag and tone generation counter - Deadline: 16 Apr, 2023
-    \item System configuration C struct - Deadline:  16 Apr, 2023
-    \item Mode loader - Deadline: 16 Apr, 2023
-    \begin{enumerate}
-        \item Display Options function (through LCD Driver)
-        \item Load settings/normal mode functions
-    \end{enumerate}
-    \item Settings Mode - Deadline: 27 Apr, 2023
-    \begin{enumerate}
-        \item Display settings function (through LCD Driver)
-        \item Save settings function (through persistent storage driver)
-    \end{enumerate}
+    \item Mode loader - Deadline: 16 Apr, 2023. Subtasks: Display Options function, Load settings/normal mode functions.
+    \item Settings Mode - Deadline: 27 Apr, 2023. Subtasks: Display settings function, Save settings function.
 \end{enumerate}
 
 \subsection{Task Dependencies}
@@ -305,26 +235,17 @@ When considering the inter-dependencies of the tasks listed above, there is a di
 has adequate resources to be accomplished. The order is the following:
 \begin{enumerate}
     \item Lock-Free Queue
-    The lock-free queue must be completed before anything else as it is an essential data structure that multiple drivers are going to use. Once the lock-free queue has been
-    coded, it can be used throughout the rest of the development.
-    It is also a task that might be more challenging thus it would make sense to complete it first.
     \item LCD Driver
-    Having a working LCD Driver from the early stages of the development will help the development of other components, such as the Mode loader and the Keypad Driver.
-    \item LED Driver
-    Since the LEDs will be turned on upon key press registration and the currently selected mode of the device, having a working LED Driver is going to be preferable when developing
-    other essential components such as the keypad driver and the mode loader.
-    \item Keypad Driver
-    The Keypad Driver is an essential component which will be indirectly used by multiple other components and thus would facilitate their development.
-    \item Persistent Storage Driver
-    The Persistent Storage Driver is necessary for the rest of the components. For example, the DAC Driver will reference the lookup table stored on the Persistent Storage and
-    the settings mode of the device will load the settings stored in flash memory. Therefore, it is preferable that the persistent storage driver is implemented before these.
-    \item Global Variables, structs and Settings Mode
-    Having the global variables, the C-string and the settings mode in place will facilitate the development of the DAC driver as it will work basked on the values insde the C-struct.
-    \item DAC Driver
-    Having the persistent storage driver, the settings and the lock-free queue, the DAC driver can be implemented.
+   \item LED Driver
+   \item Keypad Driver
+   \item Persistent Storage Driver
+   \item DAC Driver
 \end{enumerate}
 
 \section{Closure}
+
+In conclusion, this document describes the design of an efficient and performant system implementing DTMF encoding. The system's software has been split up
+into several modules showing good separation of concerns. Although not discussed here, a highly efficient algorithm has been derived for use in tone generation.
 
 \bibliographystyle{ieeetr}
 \bibliography{references}
