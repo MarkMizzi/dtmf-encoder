@@ -1,6 +1,4 @@
-\documentclass[11pt,a4paper
-%,twocolumn
-]{scrartcl}
+\documentclass[11pt,a4paper,twocolumn]{scrartcl}
 
 % Support for UTF-8 and non-English letters require the following two
 \usepackage[T1]{fontenc}
@@ -81,56 +79,67 @@
 \maketitle
 
 \abstract{%
-   A Dual Tone Multi Frequency (DTMF for short) encoder is a technology used for devices or servers to communicate with other devices or servers over a standard analogue telephone line. This is mainly used for automated switchboards for calls; however, this is also used in dial up modems, call menus, remote control systems, telephone banking, and other applications. It functions by converting a possible 16 symbols on a keypad (1-9, A-D, * and \#) into a possible combination of 4 high frequencies (representing the keypad columns) and 4 low frequencies (representing the keypad rows). These frequencies are within the range of frequencies used to transmit the human voice allowing it to be transmitted over telephone lines as audible sounds that are however hard to reproduce by humans. The combination of signals is then received by the decoder and analysed to find which 2 signals make up the combination and thus which keypad symbol was pressed. \\[5mm]
+   Dual Tone Multi Frequency (DTMF for short) encoding is a technology used for devices (including servers) to communicate with other devices over a standard analogue telephone line. [citation needed]
+   This is mainly used for automated switchboards for calls; however, this is also used in dial up modems, call menus, remote control systems, telephone banking, and other applications. [citation needed]
+   
+   The technology functions by converting each of 16 symbols on a keypad (1-9, A-D, * and \#) into a special tone. The tone consists of a sum of two sine waves, whose frequency is determined
+   by pairwise combination of 4 high frequencies (representing the keypad columns) and 4 low frequencies (representing the keypad rows).
+   
+   The frequencies used fall within the same range as the human voice, allowing the tones to be transmitted over telephone lines as audible sounds. 
+   The tone is received by a decoder, and its spectrum is analysed to determine the keypad symbol pressed.
 
-   Implementing this on a microcontroller requires hardware interfacing, DTMF encoding techniques as well as low level microcontroller programming given that a microcontroller does not come pre-packaged with an operating system that abstracts low level system calls and basic hardware handling. Although this makes the job of the programmer harder it also gives them the opportunity to make their code very size and performance efficient by only including code that is specific to the task required. The design will make use of a display to show the user what keys they have pressed as well as to display any messages or errors. LEDs will also be used as indicators for different modes or statuses. The Digital to Analog Converter's output, which is used to turn the binary value from the program into an analogue electrical signal, is then connected to an amplifier so that a speaker can play the tone.
-
-
-
+   This document outlines the design of a DTMF encoding system based on a microcontroller board. The system described makes use of an LCD display to show the user 
+   what keys they have pressed as well as to display any messages or errors. An LED is also be used as an indicator of the system's state. 
+   An on-board DAC, in conjunction with an amplifier circuit and speaker are used to generate and amplify the DTMF tones.
    }
 
 \section{Introduction}
-Write an introduction, explaining the purpose and background of this project.
-Give a brief description of the game to be implemented.
-Also include an overview of this document.
+   The goal of this project is to implement a DTMF encoding system based on the Embedded Artists LPC4088 microcontroller board.
 
-\section{System Design}
+   Microcontroller programming poses several technical challenges. Microcontrollers are designed for use in real-time systems, and hence do not have an operating system which deals with the issue 
+   of task management. Task scheduling has to be handled explicitly by the programmer, through the use of an ad-hoc scheduler and/or interrupt handlers.
 
-\subsection{System overview}
+   In addition, microcontrollers are generally low-cost systems with limited hardware resources, and hence require the use of low-level programming tricks to achieve efficiency and performance
+   despite the resource constraints.
+   
+   The DTMF system implemented will make use of several I/O devices, including
+   \begin{enumerate}
+      \item An LCD used to convey user input or settings options to the user.
+      \item An indicator LED which turns on when the system is booted.
+      \item A keypad input device used to choose between settings or to input DTMF symbols.
+   \end{enumerate}
 
-This section offers a brief overview of the designed system's features.
+   On boot-up, the system will prompt the user to enter one of two operational modes: settings or normal mode.
 
-The system will make use of several I/O devices, including
-\begin{enumerate}
-   \item An LCD used to convey user input or settings options to the user.
-   \item An indicator LED which turns on when the system is booted.
-   \item A keypad input device used to choose between settings or to input DTMF symbols.
-\end{enumerate}
+   In settings mode, the user is presented with numbered options which can be used to configure the system. 
+   The user's options are persisted to flash memory for use in normal mode.
+   The options available to the user will include:
 
-On boot-up, the system will prompt the user to enter one of two operational modes: settings or normal mode.
+   \begin{enumerate}
+      \item Inter-symbol spacing, i.e. the delay between two consecutive tones being produced.
+      \item Symbol length, i.e. the duration for which a single tone is produced.
+      \item Tone resolution. This setting affects the sampling frequency of the tone produced. A higher tone resolution produces a better quality tone, but is more computationally intensive.
+      \item Reboot system. This saves the chosen options and resets the system.
+   \end{enumerate}
 
-In settings mode, the user is presented with numbered options which can be used to configure the system. 
-The user's options are persisted to flash memory for use in normal mode.
-The options available to the user will include:
+   When the system enters normal mode, options are loaded from flash memory, and the system behaves as a DTMF encoder, 
+   producing tones when the user presses keys.
 
-\begin{enumerate}
-   \item Inter-symbol spacing, i.e. the delay between two consecutive tones being produced.
-   \item Symbol length, i.e. the duration for which a single tone is produced.
-   \item Tone resolution. This setting affects the sampling frequency of the tone produced. A higher tone resolution produces a better quality tone, but is more computationally intensive.
-   \item Reboot system. This saves the chosen options and resets the system.
-\end{enumerate}
+   Section \ref{system-design} describes the proposed design for the DTMF encoding system. The system's architecture is described in detail in subsection \ref{system-arch}. 
+   Subsection \ref{polling-method} clarifies some implementation details regarding the polling cycle used to drive the keypad input.
 
-When the system enters normal mode, options are loaded from flash memory, and the system behaves as a DTMF encoder, 
-producing tones when the user presses keys.
+   Section \ref{schedule} outlines a breakdown of the system's implementation into individual tasks, as well as a schedule for implementing these tasks.
 
-\subsection{System architecture}
+\section{System Design} \label{system-design}
+
+\subsection{System architecture} \label{system-arch}
 
 To implement these features while adhering to good seperation of concerns, the system must make use of several software components.
 The proposed software components are shown in Figure \ref{fig:software_components}.
 
 \begin{figure}
    \centering
-   \includegraphics[width=0.75\textwidth]{software_components}
+   \includegraphics[width=0.48\textwidth]{software_components}
    \caption{Software components proposed for the system, grouped by functionality. Arrows between components indicate caller-callee dependencies.}
    \label{fig:software_components}
 \end{figure}
@@ -175,7 +184,7 @@ starts off the next tone's interrupt handler. Note that the check and pop from t
 
 \begin{figure}
    \centering
-   \includegraphics[width=0.75\textwidth]{tone_interrupt_cfd}
+   \includegraphics[width=0.48\textwidth]{tone_interrupt_cfd}
    \caption{Control flow diagram illustrating behaviour of tone-generating interrupt handlers}
    \label{fig:tone_interrupt_cfd}
 \end{figure}
@@ -207,7 +216,7 @@ The \textbf{lock-free queue} is a globally allocated thread-safe data structure.
    \item Check if queue is empty and dequeue. This must be one atomic operation.
 \end{enumerate}
 
-\subsection{How the polling method is invoked}
+\subsection{How the polling method is invoked} \label{polling-method}
 
 There are several ways in which the polling cycle procedure that processes user input in normal mode (described above) can be executed.
 
@@ -225,7 +234,7 @@ Each of these design choices is more sophisticated than the one before it, while
 The plan is hence to implement each of these designs in turn. When one implementation has been successfully tested, the team will move on to implementing a more
 sophisticated design.
 
-\section{Management}
+\section{Management} \label{schedule}
 \subsection{Final Deadline}
 Before discussing any specific task details, an approximation for the final deadline will be set to 10th May. This will ensure that the work is done at a proper pace whilst also
 leaving enough room for any necessary adjustments that might need to be done towards the end of the project.
