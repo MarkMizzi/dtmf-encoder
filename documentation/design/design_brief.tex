@@ -81,14 +81,14 @@
 \maketitle
 
 \abstract{%
-   This document outlines the design of a DTMF encoding system based on a microcontroller board. The system described makes use of an LCD display to show the user what keys they have pressed as well as to display any messages or errors. An LED is also be used as an indicator of the system's state. An on-board DAC, in conjunction with an amplifier circuit and speaker are used to generate and amplify the DTMF tones.
+   This document outlines the design of a DTMF encoding system based on a microcontroller board. The system described makes use of an LCD display to show the user what keys they have pressed as well as to display any messages or errors. An LED is used as an indicator of the system's state. An on-board DAC, in conjunction with an amplifier circuit and speaker are used to generate and amplify the DTMF tones.
    }
 
 \section{Introduction}
 
    Dual Tone Multi Frequency (DTMF for short) encoding is a technology used to communicate with other devices over a standard analogue telephone line \cite{sl:an218}. This is mainly used for automated switchboards for calls; however, this is also used in remote control systems, telephone banking, and other applications \cite{sl:an218}.
 
-   The technology functions by converting each of 16 symbols on a keypad (1-9, A-D, * and \#) into a special tone. The tone consists of a sum of two sine waves, whose frequency is determined by pairwise combination of 4 high frequencies (representing the keypad columns) and 4 low frequencies (representing the keypad rows) \cite{sl:an218}.
+   The technology functions by converting each of the 16 symbols on a keypad (1-9, A-D, * and \#) into a specific tone. The tone consists of a sum of two sine waves, whose frequency is determined by pairwise combination of 4 high frequencies (representing the keypad columns) and 4 low frequencies (representing the keypad rows) \cite{sl:an218}.
 
    The goal of this project is to implement a DTMF encoding system based on the Embedded Artists LPC4088 microcontroller board.
 
@@ -137,7 +137,7 @@ The proposed software components are shown in Figure \ref{fig:software_component
 Not shown in this figure is the use of several global variables to store the state of the system. These include 
 (i) a thread-safe flag which indicates whether a tone is being generated,
 (ii) a counter used to keep track of tone generation in between interrupt handler invocations,
-(iii) a readonly lookup-table containing samples of the $\sin$ function, and
+(iii) a read-only lookup-table containing samples of the $\sin$ function, and
 (iii) a \verb!struct! holding user configuration of the system.
 
 It is also worth noting that the lock-free queue indicated in the design is globally allocated, and is accessed by several ``threads'' of execution.
@@ -151,8 +151,7 @@ The \textbf{settings} component will contain the code for settings mode. It must
 The \textbf{DAC driver} is central to system operation, as it contains functions which generate the DTMF tones. The module should provide a function which, 
 given a symbol, enables a timer interrupt handler (depending on what tone is to be produced) and sets the timer duration to the sampling frequency of the tone.
 
-The module should also implement 16 timer interrupt handlers (one for each tone) to produce tone samples and 
-drive the DAC. The interrupt handlers will be similar in behaviour, and will share a lot of their code.The benefits of having an interrupt handler for each tone is that it reduces the amount of global state used by the system and allows the compiler to aggressively optimize the handlers in question, e.g. applying constant division optimization.
+The module should also implement 16 timer interrupt handlers (one for each tone) to produce tone samples and drive the DAC. The interrupt handlers will be similar in behaviour, and will share a lot of their code. The benefits of having an interrupt handler for each tone is that it reduces the amount of global state used by the system and allows the compiler to aggressively optimize the handlers in question, e.g. applying constant division optimization.
 
 The behaviour of each interrupt handler is shown in the control flow diagram in Figure \ref{fig:tone_interrupt_cfd}.
 
@@ -199,40 +198,39 @@ The simplest method is to run the procedure in application mode, with a set peri
 A more sophisticated option is to run the procedure as an interrupt handler for a timer interrupt, with the timer duration set to avoid spurious input. In this version, the processor has no application code to run and can be put in sleep mode in between interrupt invocations. While more efficient than the busy-waiting approach, this method can still invoke the interrupt handler when there is no input to process.
 
 A final, more efficient approach is to have a keypad-driven interrupt handler. In this approach, the columns of the keypad are set high, and pressing any key
-triggers a pin interrupt. The interrupt handler then invokes the polling method to handle the key pressed.
+triggers a pin interrupt for its row. The interrupt handler then invokes the polling method to find which key in that row was pressed and handle it.
 
-Each of these design choices is more sophisticated than the one before it, while re-using much of the same code. The plan is to implement each of these designs in turn. When one implementation has been successfully tested, the team will move on to implementing a more sophisticated design.
+Each of these design choices is more sophisticated than the last, while re-using much of the same code. The plan is to implement each of these designs in turn. When one implementation has been successfully tested, the team will move on to implementing a more sophisticated design.
 
 \section{Management} \label{schedule}
 \subsection{Final Deadline}
-The final deadline will be set to 10th May. This will ensure that the work is done at a proper pace whilst leaving enough room for any necessary 
+The final deadline will be set to \textbf{10\textsuperscript{th} May} to ensure that the work is done at a proper pace whilst leaving enough room for any necessary 
 adjustments.
 
 \subsection{Tasks}
 To implement the system, the above-mentioned software components have to be split into multiple sub-tasks. Each task will have a fairly allocated time-frame for completion. The deadlines for each task are as follows:
 \subsubsection{Drivers}
 \begin{enumerate}
-    \item LCD Driver - Deadline: 8 Apr, 2023. Subtasks: Symbol and C-String to LCD function, Display function.
-    \item Keypad Driver - Deadline: 8 Apr, 2023. Subtasks: Polling Cycle function for the keypad, Keypad driven interrupt.
-    \item LED Driver - Deadline: 8 Apr, 2023. Subtasks: LED On function, LED Off function.
-    \item Persistent Storage Driver - Deadline: 16 Apr, 2023. Subtasks: Serialising Data, Persisting Data, Loading Data, Deserializing Data.
-    \item DAC Driver - Deadline: 20 Apr, 2023. Subtasks: Timer interrupt handler enable method, Set timer duration function, Interrupt handlers.
+    \item LCD Driver - Deadline: \textbf{8\textsuperscript{th} April}. Subtasks: Symbol and C-String to LCD function, Display function.
+    \item Keypad Driver - Deadline: \textbf{8\textsuperscript{th} April}. Subtasks: Polling Cycle function for the keypad, Keypad driven interrupt.
+    \item LED Driver - Deadline: \textbf{8\textsuperscript{th} April}. Subtasks: LED On function, LED Off function.
+    \item Persistent Storage Driver - Deadline: \textbf{16\textsuperscript{th} April}. Subtasks: Serialising Data, Persisting Data, Loading Data, Deserializing Data.
+    \item DAC Driver - Deadline: \textbf{20\textsuperscript{th} April}. Subtasks: Timer interrupt handler enable method, Set timer duration function, Interrupt handlers.
 \end{enumerate}
 
 \subsubsection{Data Structures}
 \begin{enumerate}
-    \item Lock-Free queue - Deadline: 01 Apr, 2023. Subtasks: Atomic Enqueue function, Atomic Check and Dequeue function.
+    \item Lock-Free queue - Deadline: \textbf{1\textsuperscript{st} April}. Subtasks: Atomic Enqueue function, Atomic Check and Dequeue function.
 \end{enumerate}
 
 \subsubsection{System}
 \begin{enumerate}
-    \item Mode loader - Deadline: 16 Apr, 2023. Subtasks: Display Options function, Load settings/normal mode functions.
-    \item Settings Mode - Deadline: 27 Apr, 2023. Subtasks: Display settings function, Save settings function.
+    \item Mode loader - Deadline: \textbf{16\textsuperscript{th} April}. Subtasks: Display Options function, Load settings/normal mode functions.
+    \item Settings Mode - Deadline: \textbf{27\textsuperscript{th} April}. Subtasks: Display settings function, Save settings function.
 \end{enumerate}
 
 \subsection{Task Dependencies}
-When considering the inter-dependencies of the tasks listed above, there is a discrete order of task development which should be followed, which ensures that each subsequent task
-has adequate resources to be accomplished. The order is the following:
+When considering the inter-dependencies of the tasks listed above, there is a discrete order of task development that when followed should ensure that each subsequent task has adequate resources to be accomplished. The order is the following:
 \begin{enumerate}
     \item Lock-Free Queue
     \item LCD Driver
