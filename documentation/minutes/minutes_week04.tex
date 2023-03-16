@@ -1,0 +1,128 @@
+\documentclass[11pt,a4paper]{scrartcl}
+
+% Support for UTF-8 and non-English letters require the following two
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+% Font packages
+\usepackage[default,defaultsans,oldstyle,proportional]{lato}
+\usepackage[scaled]{beramono}
+\usepackage{sfmath}
+% Optimized justification via improved microtypography on character level
+\usepackage{microtype}
+\usepackage{ragged2e}
+\usepackage[none]{hyphenat} % disable all hyphenation
+\setlength{\emergencystretch}{3em} % allow extra hfill, needed if hyphenation disabled
+%\overfullrule=1mm % mark overfull boxes
+%\usepackage{showframe} % show edges of text areas
+% Page layout
+\usepackage[left=20mm,right=20mm,top=20mm,bottom=20mm,
+   nohead,foot=10mm]{geometry}
+% SVN metadata
+\usepackage[today,revrange,nofancy]{svninfo}
+\svnInfo $Id: minutes_week04.tex 6594 2023-03-16 15:50:48Z jbri2 $
+% Page headers
+\usepackage{scrlayer-scrpage}
+\usepackage{lastpage}
+% Page header
+\KOMAoptions{headsepline=0pt,plainheadsepline=off}
+\ihead*{}
+\chead*{}
+\ohead*{}
+% Page footer
+\KOMAoptions{footsepline=0pt,plainfootsepline=off}
+\ifoot*{Last edited: \today}
+\cfoot*{Page \thepage{} of \pageref{LastPage}}
+\ofoot*{Document v.\svnInfoMaxRevision}
+% Text layout
+\KOMAoption{parskip}{never}
+\newlength{\myparindent}
+\newlength{\myparskip}
+\setlength{\myparindent}{0pt}
+\setlength{\myparskip}{5pt plus 1pt}
+\setparsizes{\myparindent}{\myparskip}{0.1\linewidth plus 1fil}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=3pt,afterindent=false]{section}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=-0.5em,afterindent=false]{paragraph}
+\RaggedRight
+
+% Meeting details
+\title{Meeting Minutes -- Group 5}
+\author{Location: 0 B 6}
+\date{16 March 2023, 13:30--16:00}
+
+\begin{document}
+
+\maketitle
+
+\section*{Present}
+% Members actually present at the meeting
+Mark Mizzi\\
+Damjan Filipovic\\
+Gabriel Apap
+
+\section*{Discussion}
+
+\begin{enumerate}
+
+% There should be an item corresponding to each of the agenda items for this
+% meeting.
+
+\item Minutes from the previous meeting were read and approved.
+
+\item Matters arising out of minutes
+   \begin{enumerate}
+        \item Clarification was made about what functions of the queue must be thread safe. It was erroneously stated that only the pop command must be thread safe however it was resolved that the push command must be too.
+   \end{enumerate}
+
+\item Progress report from group members
+   \begin{enumerate}
+        \item Mark researched into assembly instructions and while doing so implemented the lock free queue. He has also been mocking the DAC driver design that was theorised using POSIX facilities.
+        \item Damjan worked with Mark on the lock free queue.
+        \item Gabriel looked into the LCD driver and has understood how the LCD micro-controller works. While this is useful for the project it is mostly unnecessary for the rest of team to commit time to researching and understanding this given that we are already provided an LCD driver.
+   \end{enumerate}
+
+\item Brief discussion of lock-free queue and atomic test-and-set implementation.
+    \begin{enumerate}
+        \item Lock free queue was implemented with 2 functions, en-queue and check\_and\_de-queue both as atomic functions written in inline assembly. Mark explained to us the various checks put in place to ensure data corruption, out of order tone production or other system malfunctions do not occur.
+        \item The system includes a global flag that is used to determine whether a tone is being generated. Since this can be modified by multiple "threads" in execution it has to be accessed using a piece of inline assembly that implements atomic test and set.
+    \end {enumerate}
+
+\item Discuss meeting for labs.\\
+\quad \quad It was decided that Tuesdays at 9AM will be the start of our lab sessions, that will be done as a group.
+
+\item Finish IDE setup.\\
+\quad \quad The IDE setup was finalised and the C11 standard was chosen for the project.
+
+\item Other matters.
+\begin{enumerate}
+    \item Mark showed his progress on the DAC driver. He experimented with duplicating the code for the timer interrupt handler and created a dispatch table to pick the right interrupt handler when starting tone generation. From these experiments it was determined that duplicating the code for the handlers increases performance while generating a smaller binary than an approach that uses a look up table for each tone. 
+\end{enumerate}
+
+\end{enumerate}
+
+\section*{Actions}
+
+\begin{enumerate}
+
+\item Understand provided LCD Driver
+\begin{flushright}
+Assigned to: \textbf{Gabriel Apap} \\
+Deadline: \textbf{Next Meeting}
+\end{flushright}
+
+\item Look into timer enable/disable and setting timer handlers
+\begin{flushright}
+Assigned to: \textbf{Mark Mizzi} \\
+Deadline: \textbf{Next meeting}
+\end{flushright}
+
+\item Look into keypad and persistent storage driver
+\begin{flushright}
+Assigned to: \textbf{Damjan Filipovic} \\
+Deadline: \textbf{2 meetings time}
+\end{flushright}
+
+% Add more actions as necessary
+
+\end{enumerate}
+
+\end{document}
