@@ -26,4 +26,4 @@ void timer_disable(void);
 
 #endif // TIMER_H
 
-// *******************************ARM University Program Copyright ï¿½ ARM Ltd 2014*************************************   
+// *******************************ARM University Program Copyright © ARM Ltd 2014*************************************   

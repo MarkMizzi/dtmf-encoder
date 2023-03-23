@@ -18,4 +18,4 @@ void dac_set(int value);
 
 #endif
 
-// *******************************ARM University Program Copyright © ARM Ltd 2014*************************************   
+// *******************************ARM University Program Copyright Â© ARM Ltd 2014*************************************   

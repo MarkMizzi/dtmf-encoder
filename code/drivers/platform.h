@@ -343,4 +343,4 @@ P_CMP_PLUS     P0_9        //P11 (CMP1_IN[2])   VP
 P_CMP_NEG      P0_8        //P12 (CMP1_IN[3])   VM
 										
 */
-// *******************************ARM University Program Copyright ? ARM Ltd 2014*************************************   
+// *******************************ARM University Program Copyright © ARM Ltd 2014*************************************   

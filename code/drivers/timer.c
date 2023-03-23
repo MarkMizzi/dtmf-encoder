@@ -1,5 +1,5 @@
-#include "platform.h"
-#include "timer.h"
+#include <platform.h>
+#include <timer.h>
 
 //PCONP power control register
 #define PCTIM0 (1UL << 1)
@@ -78,4 +78,4 @@ void TIMER0_IRQHandler(void){
 	
 }
 
-// *******************************ARM University Program Copyright ï¿½ ARM Ltd 2014*************************************   
+// *******************************ARM University Program Copyright © ARM Ltd 2014*************************************   

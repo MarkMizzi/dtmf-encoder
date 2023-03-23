@@ -2,7 +2,8 @@
 #include "dtmf_symbols.h"
 #include "queue.h"
 
-int main(void);
+#include <dac.h>
+
 void start_or_enqueue(int symbol);
 
 void start_or_enqueue(int symbol) {
@@ -12,8 +13,8 @@ void start_or_enqueue(int symbol) {
 }
 
 int main(void) {
+	dac_init();
+	__enable_irq();
 	start_or_enqueue(SYMBOL_0);
-	for (volatile int i = 0; i < 1000000; i++);
-	start_or_enqueue(SYMBOL_6);
-	for (;;);
+	while (1);
 }

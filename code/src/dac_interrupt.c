@@ -1,12 +1,11 @@
 #include "dtmf_symbols.h"
-#include "queue.h"
 #include "dac_interrupt.h"
-#include "drivers/timer.h"
-#include "drivers/dac.h"
-#include "drivers/platform.h"
+#include "timer.h"
+#include "queue.h"
 
-#include "LPC407x_8x_177x_8x.h"
-
+#include <dac.h>
+#include <platform.h>
+#include <LPC407x_8x_177x_8x.h>
 #include <limits.h>
 #include <stdbool.h>
 
@@ -18,22 +17,23 @@
 #define N (1 << LOG_2_N)
 
 const static unsigned sin_lut[N] = {
-    128,134,140,146,152,158,165,170,
-176,182,188,193,198,203,208,213,
-218,222,226,230,234,237,240,243,
-245,248,250,251,253,254,254,255,
-255,255,254,254,253,251,250,248,
-245,243,240,237,234,230,226,222,
-218,213,208,203,198,193,188,182,
-176,170,165,158,152,146,140,134,
-128,121,115,109,103,97,90,85,   
-79,73,67,62,57,52,47,42,        
-37,33,29,25,21,18,15,12,        
-10,7,5,4,2,1,1,0,
-0,0,1,1,2,4,5,7,
-10,12,15,18,21,25,29,33,
-37,42,47,52,57,62,67,73,
-79,85,90,97,103,109,115,121};
+  128,134,140,146,152,158,165,170,
+	176,182,188,193,198,203,208,213,
+	218,222,226,230,234,237,240,243,
+	245,248,250,251,253,254,254,255,
+	255,255,254,254,253,251,250,248,
+	245,243,240,237,234,230,226,222,
+	218,213,208,203,198,193,188,182,
+	176,170,165,158,152,146,140,134,
+	128,121,115,109,103, 97, 90, 85,   
+	 79, 73, 67, 62, 57, 52, 47, 42,        
+	 37, 33, 29, 25, 21, 18, 15, 12,        
+	 10,  7,  5,  4,  2,  1,  1,  0,
+	  0,  0,  1,  1,  2,  4,  5,  7,
+	 10, 12, 15, 18, 21, 25, 29, 33,
+	 37, 42, 47, 52, 57, 62, 67, 73,
+	 79, 85, 90, 97,103,109,115,121,
+};
 		
 const static unsigned col_freqs[] = {1209, 1336, 1477, 1633};
 const static unsigned row_freqs[] = {697, 770, 852, 941};
@@ -57,20 +57,11 @@ void dac_interrupt_disable(void);
 
 void dac_interrupt_callback(unsigned f1, unsigned f2)
 {
-    // generate tone (no DAC to drive here).
     unsigned sample = SIN_ADD(f1, f2, sample_index);
     dac_set((int)sample);
-
-    // TODO: Drive DAC
-
     sample_index++;
 
-    // TODO: if sample_index > f1 * K * symbol_length, initiate callback termination.
-    // This needs to disable the current callback and check if there is another pending symbol.
-    // IMPORTANT: Put this code in its own routine, otherwise it will be duplicated 16x,
-    //     a waste for code not executed frequently
-
-    if (sample_index >= (f1 * SYMBOL_LENGTH) << (LOG_2_N - LOG_2_K))
+		if (sample_index >= (f1 * SYMBOL_LENGTH) << (LOG_2_N - LOG_2_K))
     {
         // start off next tone
         pop_and_dac_interrupt_enable();
@@ -81,7 +72,7 @@ void dac_interrupt_callback(unsigned f1, unsigned f2)
     dac_interrupt_callback_##f1##_##f2
 
 #define DEF_DAC_INTERRUPT_CALLBACK(f1, f2)                \
-    static void DAC_INTERRUPT_CALLBACK_NAME(f1, f2)(void) \
+    void DAC_INTERRUPT_CALLBACK_NAME(f1, f2)(void) \
     {                                                     \
         dac_interrupt_callback(f1, f2);                   \
     }
@@ -135,14 +126,12 @@ static void (*dispatch_table[4][4])(void) = {
 
 void dac_interrupt_enable_unsafe(int col, int row)
 {
+    unsigned timer_freq = col_freqs[col] << (LOG_2_N - LOG_2_K);
+	
     // reset sample index.
     sample_index = 0;
-    void (*handler)(void) = dispatch_table[row][col];
-    unsigned timer_freq = col_freqs[col] << (LOG_2_N - LOG_2_K);
-
-    timer_init(CLK_FREQ / timer_freq);
-    timer_set_callback(handler);
-    timer_enable();
+	
+    timer_enable(dispatch_table[row][col], timer_freq);
 }
 
 bool pop_and_dac_interrupt_enable(void)
@@ -163,19 +152,27 @@ bool dac_interrupt_enable(int col, int row)
     // get old value of the flag
     // NOTE: this has to be int not bool, so that the compiler doesn't get any funny ideas.
     int flag;
-    __asm(
-        "MOV r1, %[dac_interrupt_flag]\n\t"
-        "MOV r2, #1\n"
-        "L1:\n\t"
-        "LDREX r0, [r1]\n\t"
-        "STREX r3, r2, [r1]\n\t"
-        "CMP r3, #0\n\t"
-        "BNE L1\n\t"
-        "DMB\n\t"
-        "MOV %[flag], r0"
-        : [flag] "=r"(flag)
-        : [dac_interrupt_flag] "r"(&dac_interrupt_flag)
-        : "r0", "r1", "r2", "r3");
+	
+		// registers used in __asm
+		int r0, r1, r2, r3;
+		__asm
+		{
+				MOV r1, dac_interrupt_flag
+				MOV r2, 1
+		}
+		do {
+			__asm
+			{
+					LDREX r0, [r1]
+					STREX r3, r2, [r1]
+			}
+		} while (r3);
+		
+		__asm
+		{
+			DMB
+			MOV flag, r0
+		}
 
     if (!flag)
     {
