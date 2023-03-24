@@ -50,10 +50,61 @@ static unsigned sample_index = 0;
 #define SIN_ADD(f1, f2, i) \
     (sin_lut[((i)*K) & 0x7f] + SIN((f1), (f2), (i))) >> 1
 
+/**
+ * Generic callback for producing a single sample of the tone.
+ *
+ * Uses the global sample_index variable to determine which sample
+ * to produce.
+ *
+ * Then generates the sample, and sends it to the DAC.
+ *
+ * This function is specialized for each possible tone; see #dispatch_table.
+ *
+ * @param f1 Frequency of the first sine wave in the tone to be generated.
+ *           This should be the larger of the two frequencies
+ * @param f2 Frequency of the second sine wave in the tone to be generated.
+ */
 static void dac_interrupt_callback(unsigned f1, unsigned f2);
+
+/**
+ * This function pops the next symbol off the global queue, and calls
+ * dac_interrupt_enable_unsafe() to start generating its tone.
+ *
+ * Does nothing if the queue is empty.
+ *
+ * This is used by the DAC interrupt handler ONLY, and hence it does not use the
+ * safe version of dac_interrupt_enable(), since the DAC interrupt cannot be pre-empted,
+ * and we can assume that #dac_interrupt_flag is already set.
+ * It is not safe to use in normal code.
+ */
 static void pop_and_dac_interrupt_enable(void);
+
+/**
+ * Sets pop_and_dac_interrupt_enable() to trigger after a certain delay.
+ *
+ * The delay is determined by the value of #INTERSYMBOL_SPACING. 
+ *
+ * Used by a DAC interrupt handler to start the generation of the next tone.
+ */
 static void start_pop_and_dac_interrupt_enable(void);
+
+/** Unsafe version of dac_interrupt_enable().
+ *
+ * Bypasses the atomic test-and-set operation done by dac_interrupt_enable().
+ * This is fine when the function is called inside a DAC interrupt, as this cannot be
+ * pre-empted, and we already know that #dac_interrupt_flag is set in this case.
+ *
+ * @param col The column of the symbol whose tone is to be generated.
+ * @param row The row of the symbol whose tone is to be generated.
+ */
 static void dac_interrupt_enable_unsafe(int col, int row);
+
+/**
+ * Disable any DAC interrupt which is currently in progress.
+ *
+ * Sets the global DAC interrupt flag to false, 
+ * and disables the timer interrupt.
+ */
 static void dac_interrupt_disable(void);
 
 static void dac_interrupt_callback(unsigned f1, unsigned f2)
@@ -175,7 +226,7 @@ bool dac_interrupt_enable(int col, int row)
     return !flag; // return success
 }
 
-void dac_interrupt_disable(void)
+static void dac_interrupt_disable(void)
 {
     dac_interrupt_flag = false;
     timer_disable();
