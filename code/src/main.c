@@ -3,6 +3,7 @@
 #include "queue.h"
 
 #include <dac.h>
+#include <system_LPC407x_8x_177x_8x.h>
 
 void start_or_enqueue(int symbol);
 
@@ -13,8 +14,13 @@ void start_or_enqueue(int symbol) {
 }
 
 int main(void) {
+	volatile int i;
 	dac_init();
 	__enable_irq();
 	start_or_enqueue(SYMBOL_0);
+	for (i = 0; i < 1000000; i++);
+	start_or_enqueue(SYMBOL_8);
+	for (i = 0; i < 3000000; i++);
+	start_or_enqueue(SYMBOL_A);
 	while (1);
 }
