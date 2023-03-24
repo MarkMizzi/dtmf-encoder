@@ -15,9 +15,9 @@
 #define SYMBOL_9 0xA
 #define SYMBOL_C 0xB
 
-#define SYMBOL_POUND 0xC
+#define SYMBOL_STAR 0xC
 #define SYMBOL_0 0xD
-#define SYMBOL_STAR 0xE
+#define SYMBOL_POUND 0xE
 #define SYMBOL_D 0xF
 
 #define COL(SYMBOL) ((SYMBOL)&0x3)
