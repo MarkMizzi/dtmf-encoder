@@ -51,7 +51,8 @@ static unsigned sample_index = 0;
     (sin_lut[((i)*K) & 0x7f] + SIN((f1), (f2), (i))) >> 1
 
 static void dac_interrupt_callback(unsigned f1, unsigned f2);
-static bool pop_and_dac_interrupt_enable(void);
+static void pop_and_dac_interrupt_enable(void);
+static void start_pop_and_dac_interrupt_enable(void);
 static void dac_interrupt_enable_unsafe(int col, int row);
 static void dac_interrupt_disable(void);
 
@@ -64,7 +65,7 @@ static void dac_interrupt_callback(unsigned f1, unsigned f2)
 		if (sample_index >= (f1 * SYMBOL_LENGTH) << (LOG_2_N - LOG_2_K))
     {
         // start off next tone
-        pop_and_dac_interrupt_enable();
+        start_pop_and_dac_interrupt_enable();
     }
 }
 
@@ -134,17 +135,19 @@ static void dac_interrupt_enable_unsafe(int col, int row)
     timer_enable(dispatch_table[row][col], timer_freq);
 }
 
-static bool pop_and_dac_interrupt_enable(void)
+static void pop_and_dac_interrupt_enable(void)
 {
     // TODO: This is NOT final, it needs to start an extra handler which adds a delay
     int symbol;
     if ((symbol = check_and_dequeue()) != INT_MIN)
     {
         dac_interrupt_enable_unsafe(COL(symbol), ROW(symbol));
-        return true;
     }
     dac_interrupt_disable();
-    return false;
+}
+
+static void start_pop_and_dac_interrupt_enable(void) {
+	timer_enable(pop_and_dac_interrupt_enable, 1/INTERSYMBOL_SPACING);
 }
 
 bool dac_interrupt_enable(int col, int row)

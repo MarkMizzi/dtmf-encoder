@@ -12,9 +12,9 @@ void SysTick_Handler(void) {
 	}
 }
 
-void timer_enable(void (*timer_callback)(void), unsigned timer_freq) {
+void timer_enable(void (*timer_callback)(void), float timer_freq) {
 	timer_interrupt_isr = NULL;
-	SysTick_Config(SystemCoreClock / timer_freq);
+	SysTick_Config((int)(SystemCoreClock / timer_freq));
 	timer_interrupt_isr = timer_callback;
 }
 

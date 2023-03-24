@@ -20,7 +20,7 @@ int main(void) {
 	start_or_enqueue(SYMBOL_0);
 	for (i = 0; i < 1000000; i++);
 	start_or_enqueue(SYMBOL_8);
-	for (i = 0; i < 3000000; i++);
-	start_or_enqueue(SYMBOL_A);
+	for (i = 0; i < 10000000; i++);
+	start_or_enqueue(SYMBOL_STAR);
 	while (1);
 }
