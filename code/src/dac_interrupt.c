@@ -151,28 +151,19 @@ bool dac_interrupt_enable(int col, int row)
 {
     // get old value of the flag
     // NOTE: this has to be int not bool, so that the compiler doesn't get any funny ideas.
-    int flag;
-	
-		// registers used in __asm
-		int r0, r1, r2, r3;
-		__asm
-		{
-				MOV r1, dac_interrupt_flag
-				MOV r2, 1
-		}
-		do {
-			__asm
-			{
-					LDREX r0, [r1]
-					STREX r3, r2, [r1]
-			}
-		} while (r3);
+    int flag = 1;
 		
-		__asm
-		{
-			DMB
-			MOV flag, r0
-		}
+		int r0, r1, r2, r3;
+		__asm(
+        "MOV r1, &dac_interrupt_flag\n\t"
+        "MOV r2, #1\n"
+        "L1:\n\t"
+        "LDREX r0, [r1]\n\t"
+        "STREX r3, r2, [r1]\n\t"
+        "CMP r3, #0\n\t"
+        "BNE L1\n\t"
+        "DMB\n\t"
+        "MOV flag, r0");
 
     if (!flag)
     {
