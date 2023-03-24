@@ -50,12 +50,12 @@ static unsigned sample_index = 0;
 #define SIN_ADD(f1, f2, i) \
     (sin_lut[((i)*K) & 0x7f] + SIN((f1), (f2), (i))) >> 1
 
-void dac_interrupt_callback(unsigned f1, unsigned f2);
-bool pop_and_dac_interrupt_enable(void);
-void dac_interrupt_enable_unsafe(int col, int row);
-void dac_interrupt_disable(void);
+static void dac_interrupt_callback(unsigned f1, unsigned f2);
+static bool pop_and_dac_interrupt_enable(void);
+static void dac_interrupt_enable_unsafe(int col, int row);
+static void dac_interrupt_disable(void);
 
-void dac_interrupt_callback(unsigned f1, unsigned f2)
+static void dac_interrupt_callback(unsigned f1, unsigned f2)
 {
     unsigned sample = SIN_ADD(f1, f2, sample_index);
     dac_set((int)sample);
@@ -72,7 +72,7 @@ void dac_interrupt_callback(unsigned f1, unsigned f2)
     dac_interrupt_callback_##f1##_##f2
 
 #define DEF_DAC_INTERRUPT_CALLBACK(f1, f2)                \
-    void DAC_INTERRUPT_CALLBACK_NAME(f1, f2)(void) \
+    static void DAC_INTERRUPT_CALLBACK_NAME(f1, f2)(void) \
     {                                                     \
         dac_interrupt_callback(f1, f2);                   \
     }
@@ -124,7 +124,7 @@ static void (*dispatch_table[4][4])(void) = {
     },
 };
 
-void dac_interrupt_enable_unsafe(int col, int row)
+static void dac_interrupt_enable_unsafe(int col, int row)
 {
     unsigned timer_freq = col_freqs[col] << (LOG_2_N - LOG_2_K);
 	
@@ -134,7 +134,7 @@ void dac_interrupt_enable_unsafe(int col, int row)
     timer_enable(dispatch_table[row][col], timer_freq);
 }
 
-bool pop_and_dac_interrupt_enable(void)
+static bool pop_and_dac_interrupt_enable(void)
 {
     // TODO: This is NOT final, it needs to start an extra handler which adds a delay
     int symbol;
