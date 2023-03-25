@@ -1,0 +1,152 @@
+\documentclass[11pt,a4paper]{scrartcl}
+
+% Support for UTF-8 and non-English letters require the following two
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+% Font packages
+\usepackage[default,defaultsans,oldstyle,proportional]{lato}
+\usepackage[scaled]{beramono}
+\usepackage{sfmath}
+% Optimized justification via improved microtypography on character level
+\usepackage{microtype}
+\usepackage{ragged2e}
+\usepackage[none]{hyphenat} % disable all hyphenation
+\setlength{\emergencystretch}{3em} % allow extra hfill, needed if hyphenation disabled
+%\overfullrule=1mm % mark overfull boxes
+%\usepackage{showframe} % show edges of text areas
+% Page layout
+\usepackage[left=20mm,right=20mm,top=20mm,bottom=20mm,
+   nohead,foot=10mm]{geometry}
+% SVN metadata
+\usepackage[today,revrange,nofancy]{svninfo}
+\svnInfo $Id$
+% Page headers
+\usepackage{scrlayer-scrpage}
+\usepackage{lastpage}
+\usepackage{fancyvrb}
+% Page header
+\KOMAoptions{headsepline=0pt,plainheadsepline=off}
+\ihead*{}
+\chead*{}
+\ohead*{}
+% Page footer
+\KOMAoptions{footsepline=0pt,plainfootsepline=off}
+\ifoot*{Last edited: \svnMaxToday}
+\cfoot*{Page \thepage{} of \pageref{LastPage}}
+\ofoot*{Document v.\svnInfoMaxRevision}
+% Text layout
+\KOMAoption{parskip}{never}
+\newlength{\myparindent}
+\newlength{\myparskip}
+\setlength{\myparindent}{0pt}
+\setlength{\myparskip}{5pt plus 1pt}
+\setparsizes{\myparindent}{\myparskip}{0.1\linewidth plus 1fil}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=3pt,afterindent=false]{section}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=-0.5em,afterindent=false]{paragraph}
+\RaggedRight
+
+% Meeting details
+\title{Meeting Minutes -- Group 5}
+\author{Location: 0 B 6}
+\date{24 March 2023, 12:00--13:30}
+
+\begin{document}
+
+\maketitle
+
+\section*{Present}
+% Members actually present at the meeting
+Mark Mizzi,
+Damjan Filipovic (Chair),
+Gabriel Apap
+
+\section*{Discussion}
+
+\begin{enumerate}
+
+   \item Reading and approval of minutes from previous meeting
+
+   \item Matters arising from minutes
+    \begin{enumerate}
+        \item Mark clarifies that the queue interface is implemented in pure assembly, not inline assembly as indicated in point (4a).
+        \item He also points out that the functions cannot be called atomic, as the entire function body does not constitute a critical section.
+        \item It was noted that the use of C11 is not possible given the restriction on the compiler we have to use. The project will instead use the C90 standard.
+        \item It was noted that the points made in (7a) should be quantified and presented in the design brief.
+    \end{enumerate}
+   
+   \item Progress report from group members
+      \begin{enumerate}
+         \item Gabriel did not have time to look into the LCD driver. However, he helped Mark debug the code for driving the DAC. In addition, he worked on the amplifier circuit.
+
+         \item Damjan looked into implementing the keypad driver, and has started writing and experimenting with the code.
+
+         \item Mark has refined and debugged the code for driving the DAC, and has gotten it to fully work on the microcontroller. He has also added inter-symbol spacing.
+      \end{enumerate}
+   
+   \item Brief discussion of the LCD driver code.
+      \begin{enumerate}
+         \item Nothing to be said since research was not done.
+      \end{enumerate}
+   
+   \item Brief discussion about enabling/disabling the timer interrupt and the timer interrupt handlers.
+      \begin{enumerate}
+         \item It was pointed out that to implement intersymbol-spacing, the DAC interrupt must check the queue and start generating any new tone after a delay. This delay was implemented using the same timer interrupt mechanism used by the DAC interrupt itself.
+         \item Some minor changes to the code were also pointed out. In particular, the \verb!timer_freq! parameter of the \verb!timer_enable()! function was converted into a \Verb!float! to accomodate a wider range of frequencies. This is fine given that the function is not called frequently.
+         \item The team had trouble getting the timer code from the labs to work, so instead they opted for an alternative using the SysTick mechanism built into the ARM processor. A thin wrapper around SysTick was implemented, which provides the ability to adjust timer frequency, and change the handler invoked when the timer interrupt is triggered. In addition the timer interrupt can be turned on or off.
+         \item One drawback of using SysTick is that there can only be one timer interrupt registered at a time. This means that the second design phase proposed in the design brief, where the keypad is driven using a timer interrupt cannot be implemented. It was decided to skip this design phase.
+         \item The DAC interrupt code was migrated to ARM Compiler version 5. This involved converting the assembly written in GNU syntax to the legacy armasm syntax.
+      \end{enumerate}
+   
+   \item Brief discussion about the keypad and the persistent storage driver.
+      \begin{enumerate}
+         \item Damjan points out that we need to account for de-bouncing. De-bouncing involves waiting for the voltage to stabilize after a key has been pressed.
+         \item Gabriel points out that de-bouncing can be mitigated in hardware using a Schmidt trigger and capacitor circuit.
+         \item He also notes that it might be difficult to account for de-bouncing in software, as the bouncing effect is inconsistent.
+         \item It was noted that we need to find the delay taken for a de-bounding circuit to switch off, as this affects the delay in between polling cycles (to avoid spurious key presses).
+         \item Nothing to be said about the persistent storage driver as no research was done. This research task will be postponed as it is not pertinent to the main functionality of the system.
+      \end{enumerate}
+   
+   \item Other matters.
+      \begin{enumerate}
+         \item Task Allocation.
+         \begin{enumerate}
+             \item The team is aiming to have core functionality finished by Thursday 30th March.
+             \item If this goal is met by next meeting, the Easter holidays will be spent doing documentation and updating the design brief.
+         \end{enumerate}
+         \item Keeping the design brief updated.
+            \begin{enumerate}
+                \item It was noted that the design brief should start being updated on a regular basis to reflect the progress that we are making.
+                \item The design brief should focus on the current implementation, while describing any trade-offs made in changing the design of the system.
+            \end{enumerate}
+         \item Brief discussion of Doxygen.
+      \end{enumerate}
+
+\end{enumerate}
+
+\section*{Actions}
+
+\begin{enumerate}
+
+\item Documentation of DAC interrupt code and updating design brief.
+\begin{flushright}
+Assigned to: \textbf{Mark Mizzi} \\
+Deadline: \textbf{Next meeting}
+\end{flushright}
+
+\item Implementation of LCD output of symbols.
+\begin{flushright}
+Assigned to: \textbf{Gabriel Apap} \\
+Deadline: \textbf{Next meeting}
+\end{flushright}
+
+\item Implementation of the keypad code without support for de-bouncing.
+\begin{flushright}
+Assigned to: \textbf{Damjan Filipovic} \\
+Deadline: \textbf{Next meeting}
+\end{flushright}
+
+% Add more actions as necessary
+
+\end{enumerate}
+
+\end{document}
