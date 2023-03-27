@@ -16,6 +16,16 @@
 #define K (1 << LOG_2_K)
 #define N (1 << LOG_2_N)
 
+/**
+ * A lookup-table containing one period of the sine wave at a resolution of #N`=128` samples.
+ *
+ * The samples in the table and the actual values of the sine wave are related by
+ * ~~~
+ * LUT[i] = round((sin(2 * pi * i / 128) + 1) * 255 / 2)
+ * ~~~
+ *
+ * The DAC converts the values in the lookup-table into the corresponding sine values.
+ */
 const static unsigned sin_lut[N] = {
   128,134,140,146,152,158,165,170,
 	176,182,188,193,198,203,208,213,
@@ -38,8 +48,22 @@ const static unsigned sin_lut[N] = {
 const static unsigned col_freqs[] = {1209, 1336, 1477, 1633};
 const static unsigned row_freqs[] = {697, 770, 852, 941};
 
-// is a tone currently being generated?
+/** 
+ * A flag which keeps track of whether a DAC interrupt is enabled or not
+ * (i.e. whether a tone is being generated).
+ */
 static int dac_interrupt_flag = 0;
+
+/**
+ * A global variable that keeps track of the current sample index in 
+ * between invocations of the DAC interrupt handler.
+ *
+ * The DAC interrupt handler is invoked on a timer to update the DAC (by setting it to
+ * output the next sample of a DTMF tone).
+ *
+ * Its state is torn down in between invocations, so this global stores the information
+ * needed to continue producing the tone.
+ */
 static unsigned sample_index = 0;
 
 #define SIN(BASEFREQ, FREQ, IDX)                            \
