@@ -9,11 +9,38 @@
 #include <limits.h>
 #include <stdbool.h>
 
-// NOTE: when we add custom settings, these should be the things to change.
+/**
+ * Log base 2 of the resolution (in number of samples) of `sin_lut`.
+ *
+ * By using a table whose size is an exact power of 2, and providing this constant,
+ * we can implement multiplication or division by the size of the table as shifts.
+ */
 #define LOG_2_N 7
+/**
+ * Log base 2 of the divisor for the sin lookup-table's resolution used in sampling.
+ *
+ * By using a divisor whose size is an exact power of 2, and providing this constant,
+ * we can implement multiplication or division by the size of the table as shifts.
+ */
 #define LOG_2_K 2
 
+/**
+ * Divisor for the sin lookup-table's resolution used in sampling.
+ *
+ * The sampling frequency of a tone being generated is determined as
+ * ~~~
+ * fs = N * f1 / K
+ * ~~~
+ * where `f1` is the larger of the two frequency components of the tone being generated.
+ *
+ * Hence a greater value of `K` decreases the temporal resolution of the tone produced.
+ * It is worthwhile to seperate this value from `N`, as `N` also determines the amplitude
+ * resolution of the tone being generated due to how the sample is computed.
+ */
 #define K (1 << LOG_2_K)
+/**
+ * The resolution of the sin lookup-table (in number of samples).
+ */
 #define N (1 << LOG_2_N)
 
 /**
@@ -66,13 +93,28 @@ static int dac_interrupt_flag = 0;
  */
 static unsigned sample_index = 0;
 
+/**
+ * Macro function for computing the value of lower frequency sine wave component of a tone.
+ *
+ * @param BASEFREQ The frequency of the other sine wave component of the tone being produced.
+ *                 This partially determines the sampling frequency.
+ * @param FREQ The frequency of the sine wave component being computed.
+ * @param IDX The index of the sample being computed.
+ */
 #define SIN(BASEFREQ, FREQ, IDX)                            \
     ((sin_lut[((FREQ) * (IDX)*K / (BASEFREQ)) & 0x7f] +     \
       sin_lut[-(-(FREQ) * (IDX)*K / (BASEFREQ)) & 0x7f]) >> \
      1)
 
-#define SIN_ADD(f1, f2, i) \
-    (sin_lut[((i)*K) & 0x7f] + SIN((f1), (f2), (i))) >> 1
+/**
+ * Macro function which computes a sample in a DTMF tone.
+ * 
+ * @param F1 The higher of the two frequency components of the tone.
+ * @param F2 The lower of the two frequency components of the tone.
+ * @param IDX The index of the sample being computed.
+ */
+#define SIN_ADD(F1, F2, IDX) \
+    (sin_lut[((IDX)*K) & 0x7f] + SIN((F1), (F1), (IDX))) >> 1
 
 /**
  * Generic callback for producing a single sample of the tone.
