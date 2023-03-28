@@ -254,7 +254,6 @@ static void dac_interrupt_enable_unsafe(int col, int row)
 
 static void pop_and_dac_interrupt_enable(void)
 {
-    // TODO: This is NOT final, it needs to start an extra handler which adds a delay
     int symbol;
     if ((symbol = check_and_dequeue()) != INT_MIN)
     {
