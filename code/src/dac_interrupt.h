@@ -24,4 +24,3 @@
  * @return Whether the function call succeeded in enabling the interrupt.
  */
 bool dac_interrupt_enable(int col, int row);
-
