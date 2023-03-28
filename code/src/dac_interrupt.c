@@ -114,7 +114,7 @@ static unsigned sample_index = 0;
  * @param IDX The index of the sample being computed.
  */
 #define SIN_ADD(F1, F2, IDX) \
-    ((sin_lut[((IDX)*K) & 0x7F] + SIN((1280), (F2), (IDX))) >> 1)
+    ((sin_lut[((IDX)*K) & 0x7F] + SIN((F1), (F2), (IDX))) >> 1)
 
 /**
  * Generic callback for producing a single sample of the tone.
