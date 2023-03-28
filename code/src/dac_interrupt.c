@@ -145,15 +145,6 @@ static void dac_interrupt_callback(unsigned f1, unsigned f2);
  */
 static void pop_and_dac_interrupt_enable(void);
 
-/**
- * Sets pop_and_dac_interrupt_enable() to trigger after a certain delay.
- *
- * The delay is determined by the value of #INTERSYMBOL_SPACING. 
- *
- * Used by a DAC interrupt handler to start the generation of the next tone.
- */
-static void start_pop_and_dac_interrupt_enable(void);
-
 /** Unsafe version of dac_interrupt_enable().
  *
  * Bypasses the atomic test-and-set operation done by dac_interrupt_enable().
@@ -182,7 +173,7 @@ static void dac_interrupt_callback(unsigned f1, unsigned f2)
 		if (sample_index >= (f1 * SYMBOL_LENGTH) << (LOG_2_N - LOG_2_K))
     {
         // start off next tone
-        start_pop_and_dac_interrupt_enable();
+        delay_callback(pop_and_dac_interrupt_enable, INTERSYMBOL_SPACING);
     }
 }
 
@@ -261,10 +252,6 @@ static void pop_and_dac_interrupt_enable(void)
     } else {
 			dac_interrupt_disable();
 		}
-}
-
-static void start_pop_and_dac_interrupt_enable(void) {
-	timer_enable(pop_and_dac_interrupt_enable, 1/INTERSYMBOL_SPACING);
 }
 
 bool dac_interrupt_enable(int col, int row)

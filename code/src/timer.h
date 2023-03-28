@@ -13,3 +13,5 @@ void timer_enable(void (*timer_callback)(void), float timer_freq);
 /** Disables any currently registered timer interrupts enabled with timer_enable()
  */
 void timer_disable(void);
+
+void delay_callback(void (*callback)(void), float delay_s);
