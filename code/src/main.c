@@ -25,9 +25,9 @@ int main(void) {
 	__enable_irq();
 	
 	start_or_enqueue(SYMBOL_0);
-	for (i = 0; i < 100000000; i++);
+	for (i = 0; i < 1000000; i++);
 	start_or_enqueue(SYMBOL_8);
-	for (i = 0; i < 100000000; i++);
+	for (i = 0; i < 1000000; i++);
 	start_or_enqueue(SYMBOL_STAR);
 	while (1);
 }

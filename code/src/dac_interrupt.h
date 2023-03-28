@@ -3,7 +3,7 @@
 #include <stdbool.h>
 
 #define SYMBOL_LENGTH 1
-#define INTERSYMBOL_SPACING 0.5
+#define INTERSYMBOL_SPACING 1
 
 /**
  * Attempts to enable the DAC interrupt which generates tone for a given symbol.

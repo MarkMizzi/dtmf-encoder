@@ -258,9 +258,10 @@ static void pop_and_dac_interrupt_enable(void)
     int symbol;
     if ((symbol = check_and_dequeue()) != INT_MIN)
     {
-        dac_interrupt_enable_unsafe(COL(symbol), ROW(symbol));
-    }
-    dac_interrupt_disable();
+			dac_interrupt_enable_unsafe(COL(symbol), ROW(symbol));
+    } else {
+			dac_interrupt_disable();
+		}
 }
 
 static void start_pop_and_dac_interrupt_enable(void) {
