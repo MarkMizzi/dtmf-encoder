@@ -14,4 +14,10 @@ void timer_enable(void (*timer_callback)(void), float timer_freq);
  */
 void timer_disable(void);
 
+/**
+ * Invokes \p callback after a delay of \p delay_s seconds.
+ *
+ * @param callback The callback to be invoked after a delay.
+ * @param delay_s Delay in seconds.
+ */
 void delay_callback(void (*callback)(void), float delay_s);
