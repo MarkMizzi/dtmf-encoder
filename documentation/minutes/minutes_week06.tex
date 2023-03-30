@@ -1,0 +1,135 @@
+\documentclass[11pt,a4paper]{scrartcl}
+
+% Support for UTF-8 and non-English letters require the following two
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+% Font packages
+\usepackage[default,defaultsans,oldstyle,proportional]{lato}
+\usepackage[scaled]{beramono}
+\usepackage{sfmath}
+% Optimized justification via improved microtypography on character level
+\usepackage{microtype}
+\usepackage{ragged2e}
+\usepackage[none]{hyphenat} % disable all hyphenation
+\setlength{\emergencystretch}{3em} % allow extra hfill, needed if hyphenation disabled
+%\overfullrule=1mm % mark overfull boxes
+%\usepackage{showframe} % show edges of text areas
+% Page layout
+\usepackage[left=20mm,right=20mm,top=20mm,bottom=20mm,
+   nohead,foot=10mm]{geometry}
+% SVN metadata
+\usepackage[today,revrange,nofancy]{svninfo}
+\svnInfo $Id: minutes_week06.tex 6875 2023-03-30 15:19:26Z mmiz0052 $
+% Page headers
+\usepackage{scrlayer-scrpage}
+\usepackage{lastpage}
+\usepackage{fancyvrb}
+% Page header
+\KOMAoptions{headsepline=0pt,plainheadsepline=off}
+\ihead*{}
+\chead*{}
+\ohead*{}
+% Page footer
+\KOMAoptions{footsepline=0pt,plainfootsepline=off}
+\ifoot*{Last edited: \svnMaxToday}
+\cfoot*{Page \thepage{} of \pageref{LastPage}}
+\ofoot*{Document v.\svnInfoMaxRevision}
+% Text layout
+\KOMAoption{parskip}{never}
+\newlength{\myparindent}
+\newlength{\myparskip}
+\setlength{\myparindent}{0pt}
+\setlength{\myparskip}{5pt plus 1pt}
+\setparsizes{\myparindent}{\myparskip}{0.1\linewidth plus 1fil}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=3pt,afterindent=false]{section}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=-0.5em,afterindent=false]{paragraph}
+\RaggedRight
+
+% Meeting details
+\title{Meeting Minutes -- Group 5}
+\author{Location: 0 B 6}
+\date{30 March 2023, 13:00--15:30}
+
+\begin{document}
+
+\maketitle
+
+\section*{Present}
+% Members actually present at the meeting
+Mark Mizzi,
+Damjan Filipovic,
+Gabriel Apap (Chair)
+
+\section*{Discussion}
+
+\begin{enumerate}
+
+   \item Reading and approval of minutes from previous meeting
+
+   \item Matters arising from minutes
+    \begin{enumerate}
+        \item None
+    \end{enumerate}
+   
+   \item Progress report from group members
+      \begin{enumerate}
+         \item Gabriel added the LCD driver code found in the labs in the project.
+
+         \item Damjan lfinished writing the keypad code however, it still has some bugs.
+
+         \item Mark fixed some bugs in the DAC interrupt code and documented the work.
+      \end{enumerate}
+   
+   \item Test the core code developed.
+      \begin{enumerate}
+         \item The keypad was successfully soldered and connected to the microcontroller.
+         \item The DAC interrupt and LCD code were confirmed to work, however the keypad code has some bugs that need to be fixed.
+      \end{enumerate}
+   
+   \item Discuss documentation tasks.
+      \begin{enumerate}
+         \item No documentation to be done for the LCD as it is already documented.
+         \item Mark will be updating the design brief with details about the newly added DAC interrupt code.
+         \item Damjan will be documenting the keypad code (using Doxygen) once the bugs are fixed.
+      \end{enumerate}
+   
+   \item Discuss potential research tasks (e.g. persistent storage).
+      \begin{enumerate}
+         \item Gabriel may have time to start researching the persistent storage driver during the holidays.
+         \item Mark and Damjan will be looking at refactoring the already existing code.
+      \end{enumerate}
+   
+   \item Other matters.
+      \begin{enumerate}
+         \item No other matters.
+      \end{enumerate}
+
+\end{enumerate}
+
+\section*{Actions}
+
+\begin{enumerate}
+
+\item Update the design brief and assist Damjan in refactoring the existing code.
+\begin{flushright}
+Assigned to: \textbf{Mark Mizzi} \\
+Deadline: \textbf{Next meeting}
+\end{flushright}
+
+\item Research the persistent storage driver.
+\begin{flushright}
+Assigned to: \textbf{Gabriel Apap} \\
+Deadline: \textbf{Next meeting}
+\end{flushright}
+
+\item Fix and document keypad code.
+\begin{flushright}
+Assigned to: \textbf{Damjan Filipovic} \\
+Deadline: \textbf{Next meeting}
+\end{flushright}
+
+% Add more actions as necessary
+
+\end{enumerate}
+
+\end{document}
