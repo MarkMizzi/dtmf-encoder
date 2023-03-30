@@ -120,28 +120,24 @@ void read_keypad()
 				//generating the tone and printing to LCD
 				start_or_enqueue_modified(col_pos, 0);
 				lcd_put_char(key_chars[0][col_pos]);
-				break;
 			}
 			//2nd row
 			if (gpio_get(P_ROW_1) == 1)
 			{
 				start_or_enqueue_modified(col_pos, 1);
 				lcd_put_char(key_chars[1][col_pos]);
-				break;
 			}
 			//3rd row
 			if (gpio_get(P_ROW_2) == 1)
 			{
 				start_or_enqueue_modified(col_pos, 2);
 				lcd_put_char(key_chars[2][col_pos]);
-				break;
 			}
 			//4th row
 			if (gpio_get(P_ROW_3) == 1)
 			{
 				start_or_enqueue_modified(col_pos, 3);
 				lcd_put_char(key_chars[3][col_pos]);
-				break;
 			}
 			//resetting the column value to 0
 			gpio_set(GET_COL_PIN(col_pos), 0);
