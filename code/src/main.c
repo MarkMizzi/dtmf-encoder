@@ -2,6 +2,7 @@
 #include "dtmf_symbols.h"
 #include "queue.h"
 #include "lcd.h"
+#include "keypad.h"
 
 #include <dac.h>
 #include <system_LPC407x_8x_177x_8x.h>
@@ -24,10 +25,14 @@ int main(void) {
 	lcd_clear();
 	__enable_irq();
 	
+	read_keypad();
+	
+	/*
 	start_or_enqueue(SYMBOL_0);
 	for (i = 0; i < 1000000; i++);
 	start_or_enqueue(SYMBOL_8);
 	for (i = 0; i < 1000000; i++);
 	start_or_enqueue(SYMBOL_STAR);
 	while (1);
+	*/
 }
