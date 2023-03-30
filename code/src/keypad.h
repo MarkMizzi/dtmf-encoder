@@ -5,16 +5,16 @@
 #include "keypad.h"
 
 //defining macros for the pins connected to the columns
-#define P_COL_0 P3_0
-#define P_COL_1	P3_1
-#define P_COL_2 P3_2
-#define P_COL_3 P3_3
+#define P_COL_0 P0_0
+#define P_COL_1	P0_1
+#define P_COL_2 P0_2
+#define P_COL_3 P0_3
 
 //defining macros for the pins connected to the rows
-#define P_ROW_0 P4_0
-#define P_ROW_1 P4_1
-#define P_ROW_2 P4_2
-#define P_ROW_3 P4_3
+#define P_ROW_0 P0_4
+#define P_ROW_1 P0_5
+#define P_ROW_2 P0_6
+#define P_ROW_3 P0_7
 
 #define ROWS 4
 #define COLS 4
