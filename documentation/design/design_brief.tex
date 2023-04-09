@@ -3,6 +3,8 @@
 % Support for UTF-8 and non-English letters require the following two
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
+\usepackage{algorithm2e}
+\usepackage{fancyvrb}
 % Font packages
 \usepackage[default,defaultsans,oldstyle,proportional]{lato}
 \usepackage[scaled]{beramono}
@@ -66,6 +68,9 @@
 
 % Document-specific settings
 \renewcommand\abstractname{Executive Summary}
+
+% define a critical section block
+\SetKwBlock{CritSection}{critical section}{}
 
 % Document details
 \title{Design Brief: Group 5}
@@ -187,6 +192,63 @@ The \textbf{lock-free queue} is a globally allocated thread-safe data structure.
    \item Enqueue a DTMF symbol.
    \item Check if queue is empty and dequeue. This must be one atomic operation.
 \end{enumerate}
+
+\subsection{Implementation of the lock-free queue}
+
+Several simplifying assumptions about the system can be made in implementing the queue.
+
+Firstly, since the queue is filled from user input, it can be assumed that the system will on average consume elements from the queue much faster than they are produced. For this reason, a fixed size queue is acceptable, so long as the size makes it hard for a user to overflow the queue. Appropriate error handling can be used to deal with an overflow situation (for e.g. by resetting the system).
+
+This assumption allows us to implement the queue as a circularly indexed array, rather than a more complex linked list data structure. A size of 4096 elements was chosen.
+
+Although this implementation approach significantly simplifies code, and may also be more performant than a linked list approach (which would resort to a \verb!malloc! implementation for allocating nodes), one downside is that the queue takes up a significant portion of memory, while being mostly under-utilized.
+
+Secondly the system only involves one consumer (the DAC interrupt handler), and one producer (the input processing loop). For this reason, the lock-free queue can be implemented using just a single shared variable $N$, which is the size of the queue. The variables holding indices of the queue's head and tail can be considered unshared.
+
+Pseudo-code for the queue's operations is presented in Algorithms \ref{alg:enqueue} and \ref{alg:check_dequeue}.
+
+\begin{algorithm}
+   \caption{Pseudocode for the lock-free queue's enqueue operation. Note the atomic increment of $N$}\label{alg:enqueue}
+   \KwData{
+      \begin{itemize}
+         \item $q$ is the queue array
+         \item $tail$ is the immediate index after the last element in the queue
+         \item $s$ is the symbol to be enqueued
+         \item $N$ is the number of items in the queue
+         \item $M$ is the queue size (maximum capacity of the queue)
+      \end{itemize}}
+      \textbf{atomic} $N \gets (N + 1) \bmod M$; \\
+      $q[tail] \gets s$; \\
+      $tail \gets (tail + 1) \bmod M$;
+\end{algorithm}
+
+\begin{algorithm}
+   \caption{Pseudocode for the lock-free queue's check and dequeue operation.}\label{alg:check_dequeue}
+   \KwData{
+      \begin{itemize}
+         \item $q$ is the queue array
+         \item $head$ is the index of the start of the queue
+         \item $N$ is the number of items in the queue
+         \item $M$ is the queue size (maximum capacity of the queue)
+      \end{itemize}}
+      \CritSection{
+         $tmp \gets N$;\\
+         \If{$tmp = 0$}
+         {
+             $N \gets (tmp - 1) \bmod M$\;
+         }
+      }
+      $res \gets default$;\\
+      \If{$tmp \ne 0$}
+      {
+         $res \gets q[head]$;\\
+         $head \gets (head + 1) \bmod M$;
+      }
+\end{algorithm}
+
+Both the atomic increment in enqueue, and the critical section in check and dequeue can be implemented using hardware synchronization. The ARMv7-M architecture provides \verb!LDREX! (load exclusive) and \verb!STREX! (store exclusive) instructions.
+
+When a load exclusive instruction is used, a hardware monitor tracks subsequent stores to a small block containing the loaded address using a tag. Once a single exclusive store to the block has been executed, the monitor prevents subsequent exclusive stores before another exclusive load is performed.\cite{armv7_m_architecture_manual}
 
 \subsection{How the polling method is invoked} \label{polling-method}
 
