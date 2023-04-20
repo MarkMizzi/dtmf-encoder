@@ -38,7 +38,7 @@ void keypad_init()
 	gpio_set_mode(P_ROW_2, PullDown);
 	gpio_set_mode(P_ROW_3, PullDown);
 	
-	//setting all the rows as active lows
+	//setting all the cols as active lows
 	set_cols(0,0,0,0);
 }
 
