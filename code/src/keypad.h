@@ -23,7 +23,7 @@
 
 void keypad_init();
 																			
-void set_cols(int row_0, int row_1, int row_2, int row_3);
+void set_rows(int row_0, int row_1, int row_2, int row_3);
 																			
 void set_cols_all(int all_rows);
 

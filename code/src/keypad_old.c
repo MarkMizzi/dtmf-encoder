@@ -28,29 +28,30 @@ void start_or_enqueue_modified(int col, int row)
 void keypad_init() 
 {
 	//configuring the column pins
-	gpio_set_mode(P_COL_0, Output);
-	gpio_set_mode(P_COL_1, Output);
-	gpio_set_mode(P_COL_2, Output);
-	gpio_set_mode(P_COL_3, Output);
+	gpio_set_mode(P_COL_0, PullUp);
+	gpio_set_mode(P_COL_1, PullUp);
+	gpio_set_mode(P_COL_2, PullUp);
+	gpio_set_mode(P_COL_3, PullUp);
 	//configuring the row pins
-	gpio_set_mode(P_ROW_0, PullDown);
-	gpio_set_mode(P_ROW_1, PullDown);
-	gpio_set_mode(P_ROW_2, PullDown);
-	gpio_set_mode(P_ROW_3, PullDown);
+	gpio_set_mode(P_ROW_0, Output);
+	gpio_set_mode(P_ROW_1, Output);
+	gpio_set_mode(P_ROW_2, Output);
+	gpio_set_mode(P_ROW_3, Output);
 	
 	//setting all the cols as active lows
-	set_cols(0,0,0,0);
+	set_rows(0,0,0,0);
 }
 
 //setting 
-void set_cols(int col_0, int col_1, int col_2, int col_3)
+void set_rows(int row_0, int row_1, int row_2, int row_3)
 {
-	gpio_set(P_COL_0, col_0);
-	gpio_set(P_COL_1, col_1);
-	gpio_set(P_COL_2, col_2);
-	gpio_set(P_COL_3, col_3);
+	gpio_set(P_ROW_0, row_0);
+	gpio_set(P_ROW_1, row_1);
+	gpio_set(P_ROW_2, row_2);
+	gpio_set(P_ROW_3, row_3);
 }
 
+/*
 //setting all the rows using 1 hexadecimal value
 void set_cols_all(int hex_value)
 {
@@ -67,6 +68,7 @@ void set_cols_all(int hex_value)
 	gpio_set(P_COL_2, col_2);
 	gpio_set(P_COL_3, col_3);
 }
+*/
 
 int read_columns()
 {
@@ -100,49 +102,28 @@ Pin GET_ROW_PIN(int row_pos)
 
 void read_keypad()
 {
-	int row_values, col_values;
-	int row;
-	int col_pos;
-	row_values = col_values = 0x0;
+	int col_pos, row_pos;
 	//intializing the keypad
 	keypad_init();
+	
 	while(true)
 	{
-		//loop unrolling - setting each column high and then reading the rows
 		for (col_pos = 0; col_pos < COLS; col_pos++)
 		{
-			//setting the column
-			gpio_set(GET_COL_PIN(col_pos), 1);
-			//1st row
-			if (gpio_get(P_ROW_0) == 1)
-			{
-				//generating the tone and printing to LCD
-				start_or_enqueue_modified(col_pos, 0);
-				lcd_put_char(key_chars[0][col_pos]);
-			}
-			//2nd row
-			if (gpio_get(P_ROW_1) == 1)
-			{
-				start_or_enqueue_modified(col_pos, 1);
-				lcd_put_char(key_chars[1][col_pos]);
-			}
-			//3rd row
-			if (gpio_get(P_ROW_2) == 1)
-			{
-				start_or_enqueue_modified(col_pos, 2);
-				lcd_put_char(key_chars[2][col_pos]);
-			}
-			//4th row
-			if (gpio_get(P_ROW_3) == 1)
-			{
-				start_or_enqueue_modified(col_pos, 3);
-				lcd_put_char(key_chars[3][col_pos]);
-			}
-			
-			//resetting the column value to 0
-			gpio_set(GET_COL_PIN(col_pos), 0);
+			if (gpio_get(GET_COL_PIN(col_pos)) == 0)
+				{
+				for (row_pos = 0; row_pos < ROWS; row_pos++) 
+				{
+					gpio_set(GET_ROW_PIN(row_pos), 1);
+					if (gpio_get(GET_COL_PIN(col_pos)) == 1)
+					{
+						start_or_enqueue_modified(col_pos, row_pos);
+						lcd_put_char(key_chars[row_pos][col_pos]);
+					}
+				}
+			}	
 		}
-		//adding the delay
+		set_rows(0, 0, 0, 0);
 		delay_ms(200);
 	}
 }
