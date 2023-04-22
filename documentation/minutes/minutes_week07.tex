@@ -1,0 +1,138 @@
+\documentclass[11pt,a4paper]{scrartcl}
+
+% Support for UTF-8 and non-English letters require the following two
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+% Font packages
+\usepackage[default,defaultsans,oldstyle,proportional]{lato}
+\usepackage[scaled]{beramono}
+\usepackage{sfmath}
+% Optimized justification via improved microtypography on character level
+\usepackage{microtype}
+\usepackage{ragged2e}
+\usepackage[none]{hyphenat} % disable all hyphenation
+\setlength{\emergencystretch}{3em} % allow extra hfill, needed if hyphenation disabled
+%\overfullrule=1mm % mark overfull boxes
+%\usepackage{showframe} % show edges of text areas
+% Page layout
+\usepackage[left=20mm,right=20mm,top=20mm,bottom=20mm,
+   nohead,foot=10mm]{geometry}
+% SVN metadata
+\usepackage[today,revrange,nofancy]{svninfo}
+\svnInfo $Id: minutes_week07.tex 6594 2023-04-22 15:50:48Z jbri2 $
+% Page headers
+\usepackage{scrlayer-scrpage}
+\usepackage{lastpage}
+\usepackage{fancyvrb}
+% Page header
+\KOMAoptions{headsepline=0pt,plainheadsepline=off}
+\ihead*{}
+\chead*{}
+\ohead*{}
+% Page footer
+\KOMAoptions{footsepline=0pt,plainfootsepline=off}
+\ifoot*{Last edited: \svnMaxToday}
+\cfoot*{Page \thepage{} of \pageref{LastPage}}
+\ofoot*{Document v.\svnInfoMaxRevision}
+% Text layout
+\KOMAoption{parskip}{never}
+\newlength{\myparindent}
+\newlength{\myparskip}
+\setlength{\myparindent}{0pt}
+\setlength{\myparskip}{5pt plus 1pt}
+\setparsizes{\myparindent}{\myparskip}{0.1\linewidth plus 1fil}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=3pt,afterindent=false]{section}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=-0.5em,afterindent=false]{paragraph}
+\RaggedRight
+
+% Meeting details
+\title{Meeting Minutes -- Group 5}
+\author{Location: 0 B 6}
+\date{20 April 2023, 13:00--15:00}
+
+\begin{document}
+
+\maketitle
+
+\section*{Present}
+% Members actually present at the meeting
+Mark Mizzi(Chair),
+Damjan Filipovic,
+Gabriel Apap (Minutes)
+
+\section*{Discussion}
+
+\begin{enumerate}
+\item Reading and approval of minutes from previous meeting
+\begin{enumerate}
+    \item Approved.
+\end{enumerate}
+
+\item Matters arising from minutes
+\begin{enumerate}
+    \item No matters
+\end{enumerate}
+
+\item Progress report from group members
+\begin{enumerate}
+    \item Mark has documented all his code using doxygen and partially updated the design brief. He has also helped to try fix issues with keypad.
+    \item Damjan has been debugging the code and trying to fix the keypad driver.
+    \item Gabriel has been doing some research on the persistent storage and has also tried to help with regards to the keypad. He will update the group about the persistent storage driver in the next meeting.
+\end{enumerate}
+
+\item Discussion of GPIO pin mapping, and keypad code.
+\begin{enumerate}
+    \item While we have spent numerous hours trying to fix it our findings are inconclusive because we have realised our keypad is broken. We will inform Prof Briffa at the upcoming group meeting and perhaps by a new keypad so we can get back to trying to fix our code. The datasheet was read and we think that the pins we selected will work, but we cannot yet test this. Mark suggests looking into coloured dithering as he believes that this will be especially useful for our use case.
+\end{enumerate}
+
+\item Discussion of use of K parameter to obtain better SNR (signal to noise) ratio.
+\begin{enumerate}
+    \item While it was previously thought that increasing the number of samples per period would lead to an increase in resolution this is untrue due to Nyquist's sampling theorem. This makes the previous quality setting discussed useless, the team has agreed to not develop it. However Mark suggests a dithering setting. Dithering is the introduction of random noise, which makes the sound better to the human ear. Team agrees to have this as a setting on the final version.
+\end{enumerate}
+
+\item Discuss research tasks for settings feature.
+\begin{enumerate}
+    \item As discussed above, research must be done on dithering.
+    \item Persitent storage must be looked into to be abel to store custom user settings
+\end{enumerate}
+
+\item Other matters.
+\begin{enumerate}
+    \item Damjan will go buy a keypad on Monday and on Tuesday we aim to have fixed the keypad code.
+\end{enumerate}
+
+\end{enumerate}
+
+\section*{Actions}
+
+\begin{enumerate}
+
+\item Research dithering
+\begin{flushright}
+Assigned to: \textbf{Mark Mizzi} \\
+Deadline: \textbf{Two meetings time}
+\end{flushright}
+
+\item Present research on persistent storage driver.
+\begin{flushright}
+Assigned to: \textbf{Gabriel Apap} \\
+Deadline: \textbf{Two meetings time}
+\end{flushright}
+
+\item Set up LPF and debouncing circuit
+\begin{flushright}
+Assigned to: \textbf{Gabriel Apap} \\
+Deadline: \textbf{Next meeting}
+\end{flushright}
+
+\item Look into code for keypad and try find any problems.
+\begin{flushright}
+Assigned to: \textbf{Damjan Filipovic} \\
+Deadline: \textbf{Next meeting}
+\end{flushright}
+
+% Add more actions as necessary
+
+\end{enumerate}
+
+\end{document}
