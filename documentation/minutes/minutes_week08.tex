@@ -1,0 +1,138 @@
+\documentclass[11pt,a4paper]{scrartcl}
+
+% Support for UTF-8 and non-English letters require the following two
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+% Font packages
+\usepackage[default,defaultsans,oldstyle,proportional]{lato}
+\usepackage[scaled]{beramono}
+\usepackage{sfmath}
+% Optimized justification via improved microtypography on character level
+\usepackage{microtype}
+\usepackage{ragged2e}
+\usepackage[none]{hyphenat} % disable all hyphenation
+\setlength{\emergencystretch}{3em} % allow extra hfill, needed if hyphenation disabled
+%\overfullrule=1mm % mark overfull boxes
+%\usepackage{showframe} % show edges of text areas
+% Page layout
+\usepackage[left=20mm,right=20mm,top=20mm,bottom=20mm,
+   nohead,foot=10mm]{geometry}
+% SVN metadata
+\usepackage[today,revrange,nofancy]{svninfo}
+\svnInfo $Id: minutes_week08.tex 6594 2023-04-27 15:50:48Z jbri2 $
+% Page headers
+\usepackage{scrlayer-scrpage}
+\usepackage{lastpage}
+\usepackage{fancyvrb}
+% Page header
+\KOMAoptions{headsepline=0pt,plainheadsepline=off}
+\ihead*{}
+\chead*{}
+\ohead*{}
+% Page footer
+\KOMAoptions{footsepline=0pt,plainfootsepline=off}
+\ifoot*{Last edited: \svnMaxToday}
+\cfoot*{Page \thepage{} of \pageref{LastPage}}
+\ofoot*{Document v.\svnInfoMaxRevision}
+% Text layout
+\KOMAoption{parskip}{never}
+\newlength{\myparindent}
+\newlength{\myparskip}
+\setlength{\myparindent}{0pt}
+\setlength{\myparskip}{5pt plus 1pt}
+\setparsizes{\myparindent}{\myparskip}{0.1\linewidth plus 1fil}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=3pt,afterindent=false]{section}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=-0.5em,afterindent=false]{paragraph}
+\RaggedRight
+
+% Meeting details
+\title{Meeting Minutes -- Group 5}
+\author{Location: 0 B 6}
+\date{27 April 2023, 13:00--15:00}
+
+\begin{document}
+
+\maketitle
+
+\section*{Present}
+% Members actually present at the meeting
+Mark Mizzi(Minutes),
+Damjan Filipovic(Chair),
+Gabriel Apap
+
+\section*{Discussion}
+
+\begin{enumerate}
+    \item Reading and approval of minutes from previous meeting
+        \begin{enumerate}
+            \item Minutes were read and approved.
+        \end{enumerate}
+
+    \item Matters arising from minutes
+        \begin{enumerate}
+            \item No matters arising from minutes.
+        \end{enumerate}
+
+    \item Progress report from group members
+        \begin{enumerate}
+            \item While debugging the keypad code, Damjan figured out that there was a teething issue in the LCD driver code. This code was taken from the lab. Damjan looked at the code and found no obvious issues, so this must be resolved in another way.
+            \item Mark has been researching dithering and working on decreasing the sampling frequency of the produced tone without affecting the output resolution. He has also been helping with debugging the system.
+            \item Gabriel looked into the LPF and debouncing circuits and ordered the components. However he could not implement the circuits as there are issues with our system.
+        \end{enumerate}
+
+    \item Debugging the keypad code.
+        \begin{enumerate}
+            \item While debugging the team discovered several problems with the platform and its software.
+            \item Firstly, the debugger reset handler only works intermittently.
+            \item Secondly, an old version of the code tested to work correctly no longer works, despite no obvious code or environment changes.
+            \item Given these issues, new keypad code cannot even be debugged.
+            \item A meeting has been set up with Prof. Briffa to resolve these issues.
+        \end{enumerate}
+
+    \item Discuss the persistent storage driver implementation.
+        \begin{enumerate}
+            \item Given the effort put towards debugging this week, the team did not have time to look into persistent storage.
+            \item The team has resolved to get the base system working before spending any time or effort on the persistent storage driver.
+        \end{enumerate}
+
+    \item Discussion of dithering implementation.
+        \begin{enumerate}
+            \item Mark investigated whether the use of cosine samples instead of sine have any effect on the output resolution as the sampling frequency decreases to the Nyquist rate. No difference was found.
+            \item In addition, after experimenting with a Python notebook, it was determined that the use of dithering will not help the clarity of the output tone, as emulating an 8-bit DAC in Python produces no audible noise.
+            \item It was determined that the audible distortion produced by our system is caused by either the lack of a LPF or the low quality of the audio driver being used.
+        \end{enumerate}
+
+    \item Discussion of the debouncing circuit and LPF.
+        \begin{enumerate}
+            \item Gabriel has found the resistor and capacitor values which can be used to construct an RC low-pass filter adaquet for our system, and ordered the non-inverting Schmidt triggers for the de-bouncing circuit.
+                He will add schematics of both these circuits with the component values to the design brief.
+        \end{enumerate}
+
+    \item Other matters.
+        \begin{enumerate}
+            \item The team's first priority is fixing the existing code previously thought to work, and finish implementing the base system. Research tasks will be postponed until this objective is met.
+        \end{enumerate}
+
+\end{enumerate}
+
+\section*{Actions}
+
+\begin{enumerate}
+
+\item Add schematics of the LPF and debouncing circuits with component values to the design brief.
+\begin{flushright}
+Assigned to: \textbf{Gabriel Apap} \\
+Deadline: \textbf{Next meeting}
+\end{flushright}
+
+\item Further research into how to implement the keypad driver.
+\begin{flushright}
+Assigned to: \textbf{Mark Mizzi and Damjan Filipovic} \\
+Deadline: \textbf{Next meeting}
+\end{flushright}
+
+% Add more actions as necessary
+
+\end{enumerate}
+
+\end{document}
