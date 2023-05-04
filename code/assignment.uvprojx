@@ -10,7 +10,7 @@
       <TargetName>Target 1</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060960::V5.06 update 7 (build 960)::.\ARM_Compiler_5.06u7</pCCUsed>
+      <pCCUsed>5060960::V5.06 update 7 (build 960)::.\Compiler</pCCUsed>
       <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
@@ -515,14 +515,14 @@
               <FilePath>.\src\delay.c</FilePath>
             </File>
             <File>
-              <FileName>keypad.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\keypad.c</FilePath>
-            </File>
-            <File>
               <FileName>keypad.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\keypad.h</FilePath>
+            </File>
+            <File>
+              <FileName>keypad_old.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\keypad_old.c</FilePath>
             </File>
           </Files>
         </Group>
