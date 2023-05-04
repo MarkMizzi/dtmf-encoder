@@ -13,6 +13,8 @@
 #define MATCHVALUE(n)                   (10000*n)
 //Set Match Register n
 #define TIM_MCR_CHANNEL_SET(n)      ((uint32_t)(3<<(n*3)))
+//Set Match Register n
+#define TIM_MCR_CHANNEL_SET_ONE_SHOT(n)      ((uint32_t)(7<<(n*3)))
 
 
 static void (*timer_callback)(void) = 0;
@@ -51,7 +53,7 @@ void timer_disable(void) {
 	
 }
 
-void timer_set_callback(void (*callback)(void)) {
+void timer_set_callback(void (*callback)(void), uint32_t period) {
 	
 	timer_callback = callback;
 	
@@ -65,6 +67,25 @@ void timer_set_callback(void (*callback)(void)) {
   NVIC_EnableIRQ(TIMER0_IRQn);
 	__enable_irq();
 
+	timer_init(period);
+	timer_enable();
+}
+
+void timer_set_callback_delay(void (*callback)(void), uint32_t period) {
+	timer_init(period);
+	timer_enable();
+	
+	timer_callback = callback;
+	
+	//Set Match 0 register
+  LPC_TIM0 -> MR0 = 1;
+	LPC_TIM0 -> MCR |= TIM_MCR_CHANNEL_SET_ONE_SHOT(0);
+	
+	//Enable interrupt for timer 0
+  NVIC_SetPriority(TIMER0_IRQn, 2);
+	NVIC_ClearPendingIRQ(TIMER0_IRQn);
+  NVIC_EnableIRQ(TIMER0_IRQn);
+	__enable_irq();
 }
 
 void TIMER0_IRQHandler(void){
@@ -76,6 +97,4 @@ void TIMER0_IRQHandler(void){
 			LPC_TIM0 -> IR = 0x1;
 		}
 	
-}
-
-// *******************************ARM University Program Copyright © ARM Ltd 2014*************************************   
+} 

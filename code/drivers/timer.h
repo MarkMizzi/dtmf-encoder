@@ -16,7 +16,9 @@ void timer_init(uint32_t period);
  *         interrupt handler.
  *  \param callback  Callback function.
  */
-void timer_set_callback(void (*callback)(void));
+void timer_set_callback(void (*callback)(void), uint32_t period);
+
+void timer_set_callback_delay(void (*callback)(void), uint32_t delay);
 
 /*! \brief Enables the timer operation. */
 void timer_enable(void);

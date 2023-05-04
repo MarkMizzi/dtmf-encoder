@@ -215,4 +215,4 @@ void lcd_print(char *string) {
 	}
 }
 
-// *******************************ARM University Program Copyright © ARM Ltd 2014*************************************
+// *******************************ARM University Program Copyright ? ARM Ltd 2014*************************************

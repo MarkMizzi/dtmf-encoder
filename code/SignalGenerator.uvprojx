@@ -329,10 +329,10 @@
             <uC99>0</uC99>
             <uGnu>0</uGnu>
             <useXO>0</useXO>
-            <v6Lang>1</v6Lang>
-            <v6LangP>5</v6LangP>
-            <vShortEn>1</vShortEn>
-            <vShortWch>1</vShortWch>
+            <v6Lang>0</v6Lang>
+            <v6LangP>0</v6LangP>
+            <vShortEn>0</vShortEn>
+            <vShortWch>0</vShortWch>
             <v6Lto>0</v6Lto>
             <v6WtE>0</v6WtE>
             <v6Rtti>0</v6Rtti>
@@ -410,6 +410,11 @@
               <FilePath>.\drivers\i2c.c</FilePath>
             </File>
             <File>
+              <FileName>timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\drivers\timer.c</FilePath>
+            </File>
+            <File>
               <FileName>uart.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\drivers\uart.c</FilePath>
@@ -445,6 +450,11 @@
               <FilePath>.\drivers\platform.h</FilePath>
             </File>
             <File>
+              <FileName>timer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\drivers\timer.h</FilePath>
+            </File>
+            <File>
               <FileName>uart.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\drivers\uart.h</FilePath>
@@ -460,49 +470,9 @@
               <FilePath>.\src\main.c</FilePath>
             </File>
             <File>
-              <FileName>dac_interrupt.c</FileName>
+              <FileName>delay.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\dac_interrupt.c</FilePath>
-            </File>
-            <File>
-              <FileName>dac_interrupt.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\dac_interrupt.h</FilePath>
-            </File>
-            <File>
-              <FileName>dtmf_symbols.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\dtmf_symbols.h</FilePath>
-            </File>
-            <File>
-              <FileName>queue.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\queue.h</FilePath>
-            </File>
-            <File>
-              <FileName>timer.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\timer.h</FilePath>
-            </File>
-            <File>
-              <FileName>timer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\timer.c</FilePath>
-            </File>
-            <File>
-              <FileName>queue.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>.\src\queue.s</FilePath>
-            </File>
-            <File>
-              <FileName>lcd.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\lcd.c</FilePath>
-            </File>
-            <File>
-              <FileName>lcd.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\lcd.h</FilePath>
+              <FilePath>.\src\delay.c</FilePath>
             </File>
             <File>
               <FileName>delay.h</FileName>
@@ -510,19 +480,39 @@
               <FilePath>.\src\delay.h</FilePath>
             </File>
             <File>
-              <FileName>delay.c</FileName>
+              <FileName>tone.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\delay.c</FilePath>
+              <FilePath>.\src\tone.c</FilePath>
             </File>
             <File>
-              <FileName>keypad.h</FileName>
+              <FileName>tone.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\src\keypad.h</FilePath>
+              <FilePath>.\src\tone.h</FilePath>
             </File>
             <File>
-              <FileName>keypad_old.c</FileName>
+              <FileName>queue.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\keypad_old.c</FilePath>
+              <FilePath>.\src\queue.c</FilePath>
+            </File>
+            <File>
+              <FileName>queue.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\queue.h</FilePath>
+            </File>
+            <File>
+              <FileName>lcd.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\lcd.h</FilePath>
+            </File>
+            <File>
+              <FileName>lcd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\lcd.c</FilePath>
+            </File>
+            <File>
+              <FileName>dtmf_symbols.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\dtmf_symbols.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -539,14 +529,14 @@
   <RTE>
     <apis/>
     <components>
-      <component Cclass="CMSIS" Cgroup="CORE" Cvendor="ARM" Cversion="5.6.0" condition="ARMv6_7_8-M Device">
-        <package name="CMSIS" schemaVersion="1.7.7" url="http://www.keil.com/pack/" vendor="ARM" version="5.9.0"/>
+      <component Cclass="CMSIS" Cgroup="CORE" Cvendor="ARM" Cversion="3.30.0" condition="CMSIS Core">
+        <package name="CMSIS" schemaVersion="1.2" url="http://www.keil.com/pack/" vendor="ARM" version="4.1.0"/>
         <targetInfos>
           <targetInfo name="Target 1"/>
         </targetInfos>
       </component>
-      <component Cclass="Device" Cgroup="Startup" Cvendor="Keil" Cversion="1.0.1" condition="LPC40xx CMSIS">
-        <package name="LPC4000_DFP" schemaVersion="1.7.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.2.1"/>
+      <component Cclass="Device" Cgroup="Startup" Cvendor="Keil" Cversion="1.0.0" condition="LPC4000 CMSIS Device">
+        <package name="LPC4000_DFP" schemaVersion="1.2" url="http://www.keil.com/pack/" vendor="Keil" version="1.0.0"/>
         <targetInfos>
           <targetInfo name="Target 1"/>
         </targetInfos>
@@ -569,7 +559,7 @@
           <targetInfo name="Target 1"/>
         </targetInfos>
       </file>
-      <file attr="config" category="source" name="Device\Source\system_LPC407x_8x_177x_8x.c" version="1.0.1">
+      <file attr="config" category="source" name="Device\Source\system_LPC407x_8x_177x_8x.c" version="1.0.0">
         <instance index="0">RTE\Device\LPC4088FET208\system_LPC407x_8x_177x_8x.c</instance>
         <component Cclass="Device" Cgroup="Startup" Cvendor="Keil" Cversion="1.0.1" condition="LPC40xx CMSIS"/>
         <package name="LPC4000_DFP" schemaVersion="1.7.2" url="http://www.keil.com/pack/" vendor="Keil" version="2.2.1"/>
@@ -587,14 +577,5 @@
       </file>
     </files>
   </RTE>
-
-  <LayerInfo>
-    <Layers>
-      <Layer>
-        <LayName>SignalGenerator</LayName>
-        <LayPrjMark>1</LayPrjMark>
-      </Layer>
-    </Layers>
-  </LayerInfo>
 
 </Project>

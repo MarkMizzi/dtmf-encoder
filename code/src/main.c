@@ -1,38 +1,28 @@
-#include "dac_interrupt.h"
-#include "dtmf_symbols.h"
-#include "queue.h"
+#include <platform.h>
+#include "tone.h"
+#include "delay.h"
 #include "lcd.h"
-#include "keypad.h"
 
-#include <dac.h>
-#include <system_LPC407x_8x_177x_8x.h>
-
-char char_array[16] = {'1', '2', '3', 'A', '4', '5', '6', 'B', '7', '8', '9', 'C', '*', '0', '#', 'D'};
-
-void start_or_enqueue(int symbol);
-
-void start_or_enqueue(int symbol) {
-	if (!dac_interrupt_enable(COL(symbol), ROW(symbol))) {
-		enqueue(symbol);
-	}
-	lcd_put_char(char_array[symbol]);
-}
+// Comment to play with interrupts, uncomment to play with blocking.
+//#define BUSY_WAIT
 
 int main(void) {
-	volatile int i;
-	dac_init();
+	
+	wavetype wave = SINE;
+	
 	lcd_init();
 	lcd_clear();
+	
+	tone_init();	
 	__enable_irq();
 	
-	read_keypad();
+		tone_play_with_interrupt(0, 2);
+
+	lcd_put_char('a');
+	delay_ms(3000);
 	
-	/*
-	start_or_enqueue(SYMBOL_0);
-	for (i = 0; i < 1000000; i++);
-	start_or_enqueue(SYMBOL_8);
-	for (i = 0; i < 1000000; i++);
-	start_or_enqueue(SYMBOL_STAR);
-	while (1);
-	*/
+	tone_play_with_interrupt(2, 1);
+	while(1);
 }
+
+// *******************************ARM University Program Copyright © ARM Ltd 2014*************************************   
