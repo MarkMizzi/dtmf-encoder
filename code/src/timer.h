@@ -1,23 +1,29 @@
-#pragma once
-/**
- * Enables a timer interrupt which triggers \p timer_freq times a second,
- * and invokes \p timer_callback when it is triggered.
- *
- * Internally, the SysTick mechanism is used.
- *
- * @param timer_callback The interrupt handler invoked when the timer goes off.
- * @param timer_freq The frequency with which the timer goes off.
+/*!
+ * \file      timer.h
+ * \brief     Controller for a hardware timer module.
+ * \copyright ARM University Program &copy; ARM Ltd 2014.
  */
-void timer_enable(void (*timer_callback)(void), float timer_freq);
+#ifndef TIMER_H
+#define TIMER_H
+#include <stdint.h>
 
-/** Disables any currently registered timer interrupts enabled with timer_enable()
+/*! \brief Initialises the timer with a specified period.
+ *  \param period  Period of the timer tick (in cpu \a cycles).
  */
+void timer_init(uint32_t period);
+
+/*! \brief Pass a callback to the API, which is executed during the
+ *         interrupt handler.
+ *  \param callback  Callback function.
+ */
+void timer_set_callback(void (*callback)(void), uint32_t period);
+
+void timer_set_callback_delay(void (*callback)(void), uint32_t delay);
+
+/*! \brief Enables the timer operation. */
+void timer_enable(void);
+
+/*! \brief Disables the timer. */
 void timer_disable(void);
 
-/**
- * Invokes \p callback after a delay of \p delay_s seconds.
- *
- * @param callback The callback to be invoked after a delay.
- * @param delay_s Delay in seconds.
- */
-void delay_callback(void (*callback)(void), float delay_s);
+#endif // TIMER_H 
