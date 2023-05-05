@@ -1,7 +1,6 @@
 #include <platform.h>
 #include <math.h>
 #include <dac.h>
-#include <adc.h>
 #include <timer.h>
 #include <gpio.h>
 #include <stdbool.h>
@@ -10,6 +9,7 @@
 #include "delay.h"
 #include "dtmf_symbols.h"
 #include "queue.h"
+#include "lcd.h"
 
 #define SYMBOL_LENGTH_MS 1000
 
@@ -274,4 +274,5 @@ void tone_play_or_enqueue(int symbol) {
 		if (!dac_interrupt_enable(COL(symbol), ROW(symbol))) {
 			enqueue(symbol);
 		}
+		lcd_put_char(symbol_chars[symbol]);
 }

@@ -17,7 +17,6 @@ int main(void) {
 	
 		tone_play_or_enqueue(SYMBOL_0);
 
-	lcd_put_char('a');
 	delay_ms(3000);
 	
 	tone_play_or_enqueue(SYMBOL_8);
