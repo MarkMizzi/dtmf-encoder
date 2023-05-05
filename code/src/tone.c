@@ -6,13 +6,11 @@
 #include <gpio.h>
 #include "tone.h"
 #include "delay.h"
-#include "queue.h"
 #include "dtmf_symbols.h"
 
-#define SYMBOL_LENGTH_MS 2000
+#define SYMBOL_LENGTH_MS 1000
 
 #define NUM_STEPS 64
-#define QUEUE_SIZE 16
 
 /**
  * Macro function for computing the value of lower frequency sine wave component of a tone.
@@ -40,20 +38,18 @@
 #define PI 3.1415927
 
 int sine_table[NUM_STEPS];
-Queue play_queue;
 
 void timer_callback_isr(unsigned base_freq, unsigned freq);
 void sinewave_init(void);
 
 void tone_init(void) {
-	queue_init(&play_queue, QUEUE_SIZE);
 	dac_init();
 	sinewave_init();
 	
 	gpio_set_mode(P_SW, PullUp);
 }
 
-static unsigned sample_index = 0;
+static int sample_index = 0;
 
 #define TIMER_CALLBACK_ISR_NAME(F1, F2) \
 	timer_callback_isr_##F1##_##F2
@@ -136,7 +132,7 @@ void (*dispatch_table[N_COLS][N_ROWS])(void) = {
 static unsigned base_freqs[N_COLS] = {1209, 1336, 1477, 1633};
 	
 void tone_play_with_interrupt(unsigned col, unsigned row) {
-	timer_set_callback(dispatch_table[row][col], base_freqs[col]);
+	timer_set_callback(dispatch_table[row][col], FREQ_HZ_TO_CYCLES(base_freqs[col]*NUM_STEPS));
 }
 	
 void timer_callback_isr(unsigned base_freq, unsigned freq) {

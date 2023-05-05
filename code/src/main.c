@@ -7,13 +7,11 @@
 //#define BUSY_WAIT
 
 int main(void) {
-	
-	wavetype wave = SINE;
-	
+
 	lcd_init();
 	lcd_clear();
 	
-	tone_init();	
+	tone_init();
 	__enable_irq();
 	
 		tone_play_with_interrupt(0, 2);

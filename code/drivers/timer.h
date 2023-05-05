@@ -5,7 +5,10 @@
  */
 #ifndef TIMER_H
 #define TIMER_H
+#include <platform.h>
 #include <stdint.h>
+
+#define FREQ_HZ_TO_CYCLES(FREQ_HZ) (SystemCoreClock / (FREQ_HZ))
 
 /*! \brief Initialises the timer with a specified period.
  *  \param period  Period of the timer tick (in cpu \a cycles).
