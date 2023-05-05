@@ -2,6 +2,7 @@
 #include "tone.h"
 #include "delay.h"
 #include "lcd.h"
+#include "dtmf_symbols.h"
 
 // Comment to play with interrupts, uncomment to play with blocking.
 //#define BUSY_WAIT
@@ -14,12 +15,12 @@ int main(void) {
 	tone_init();
 	__enable_irq();
 	
-		tone_play_with_interrupt(0, 2);
+		tone_play_or_enqueue(SYMBOL_0);
 
 	lcd_put_char('a');
 	delay_ms(3000);
 	
-	tone_play_with_interrupt(2, 1);
+	tone_play_or_enqueue(SYMBOL_8);
 	while(1);
 }
 
