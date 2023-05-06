@@ -2,7 +2,7 @@
 #define TONE_H
 
 void tone_init(void);
-void tone_play_or_enqueue(int symbol);
+void tone_play_or_enqueue(int row, int col);
 
 #endif // TONE_H
 

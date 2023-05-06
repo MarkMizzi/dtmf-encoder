@@ -23,6 +23,8 @@
 #define COL(SYMBOL) ((SYMBOL)&0x3)
 #define ROW(SYMBOL) ((SYMBOL) >> 2)
 
+#define SYMBOL(ROW, COL) (((ROW) << 2) | (COL))
+
 #define N_ROWS 4
 #define N_COLS 4
 

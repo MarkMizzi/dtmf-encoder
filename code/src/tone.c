@@ -11,7 +11,7 @@
 #include "queue.h"
 #include "lcd.h"
 
-#define SYMBOL_LENGTH_MS 1000
+#define SYMBOL_LENGTH_MS 600
 
 #define NUM_STEPS 64
 
@@ -270,8 +270,9 @@ static void dac_interrupt_disable(void)
     timer_disable();
 }
 
-void tone_play_or_enqueue(int symbol) {
-		if (!dac_interrupt_enable(COL(symbol), ROW(symbol))) {
+void tone_play_or_enqueue(int row, int col) {
+		int symbol = SYMBOL(row, col);
+		if (!dac_interrupt_enable(col, row)) {
 			enqueue(symbol);
 		}
 		lcd_put_char(symbol_chars[symbol]);
