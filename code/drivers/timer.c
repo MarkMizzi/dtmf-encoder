@@ -1,5 +1,6 @@
 #include <platform.h>
 #include <timer.h>
+#include <stddef.h>
 
 //PCONP power control register
 #define PCTIM0 (1UL << 1)
@@ -17,7 +18,10 @@
 #define TIM_MCR_CHANNEL_SET_ONE_SHOT(n)      ((uint32_t)(7<<(n*3)))
 
 
-static void (*timer_callback)(void) = 0;
+static void (*timer_callback)(void) = NULL;
+static void (*timer_delay_callback)(void) = NULL;
+
+void timer_delay_callback_isr(void);
 
 //Using timer 0
 void timer_init(uint32_t period) {
@@ -71,21 +75,18 @@ void timer_set_callback(void (*callback)(void), uint32_t period) {
 	timer_enable();
 }
 
+void timer_delay_callback_isr(void) {
+	if (timer_delay_callback != NULL) {
+		// we MUST run timer_disable() before, as timer_delay_callback() may itself enable the timer.
+		timer_disable();
+		timer_callback = NULL;
+		timer_delay_callback();
+	}
+}
+
 void timer_set_callback_delay(void (*callback)(void), uint32_t period) {
-	timer_init(period);
-	timer_enable();
-	
-	timer_callback = callback;
-	
-	//Set Match 0 register
-  LPC_TIM0 -> MR0 = 1;
-	LPC_TIM0 -> MCR |= TIM_MCR_CHANNEL_SET_ONE_SHOT(0);
-	
-	//Enable interrupt for timer 0
-  NVIC_SetPriority(TIMER0_IRQn, 2);
-	NVIC_ClearPendingIRQ(TIMER0_IRQn);
-  NVIC_EnableIRQ(TIMER0_IRQn);
-	__enable_irq();
+	timer_delay_callback = callback;
+	timer_set_callback(timer_delay_callback_isr, period);
 }
 
 void TIMER0_IRQHandler(void){

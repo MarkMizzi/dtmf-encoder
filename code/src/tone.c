@@ -11,8 +11,6 @@
 #include "queue.h"
 #include "lcd.h"
 
-#define SYMBOL_LENGTH_MS 600
-
 #define NUM_STEPS 64
 
 /**
@@ -202,14 +200,14 @@ void (*dispatch_table[N_COLS][N_ROWS])(void) = {
 };
 
 static unsigned base_freqs[N_COLS] = {1209, 1336, 1477, 1633};
-	
-void timer_callback_isr(unsigned base_freq, unsigned freq) {
+
+__STATIC_INLINE void timer_callback_isr(unsigned base_freq, unsigned freq) {
 	int sample = SIN_ADD(base_freq, freq, sample_index);
 	sample_index++;
 	dac_set(sample);
 	
-	if (sample_index >= (base_freq * NUM_STEPS * SYMBOL_LENGTH_MS) / 1000UL) {
-		pop_and_dac_interrupt_enable();
+	if (sample_index >= (base_freq * NUM_STEPS * SYMBOL_LENGTH_MS) / 1000U) {
+		timer_set_callback_delay(pop_and_dac_interrupt_enable, PERIOD_MS_TO_CYCLES(INTERSYMBOL_SPACING_MS));
 	}
 }
 
