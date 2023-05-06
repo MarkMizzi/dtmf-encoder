@@ -1,0 +1,141 @@
+\documentclass[11pt,a4paper]{scrartcl}
+
+% Support for UTF-8 and non-English letters require the following two
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+% Font packages
+\usepackage[default,defaultsans,oldstyle,proportional]{lato}
+\usepackage[scaled]{beramono}
+\usepackage{sfmath}
+% Optimized justification via improved microtypography on character level
+\usepackage{microtype}
+\usepackage{ragged2e}
+\usepackage[none]{hyphenat} % disable all hyphenation
+\setlength{\emergencystretch}{3em} % allow extra hfill, needed if hyphenation disabled
+%\overfullrule=1mm % mark overfull boxes
+%\usepackage{showframe} % show edges of text areas
+% Page layout
+\usepackage[left=20mm,right=20mm,top=20mm,bottom=20mm,
+   nohead,foot=10mm]{geometry}
+% SVN metadata
+\usepackage[today,revrange,nofancy]{svninfo}
+\svnInfo $Id: minutes_week09.tex 6594 2023-05-04 14:10:03Z dfil0003 $
+% Page headers
+\usepackage{scrlayer-scrpage}
+\usepackage{lastpage}
+\usepackage{fancyvrb}
+% Page header
+\KOMAoptions{headsepline=0pt,plainheadsepline=off}
+\ihead*{}
+\chead*{}
+\ohead*{}
+% Page footer
+\KOMAoptions{footsepline=0pt,plainfootsepline=off}
+\ifoot*{Last edited: \svnMaxToday}
+\cfoot*{Page \thepage{} of \pageref{LastPage}}
+\ofoot*{Document v.\svnInfoMaxRevision}
+% Text layout
+\KOMAoption{parskip}{never}
+\newlength{\myparindent}
+\newlength{\myparskip}
+\setlength{\myparindent}{0pt}
+\setlength{\myparskip}{5pt plus 1pt}
+\setparsizes{\myparindent}{\myparskip}{0.1\linewidth plus 1fil}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=3pt,afterindent=false]{section}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=-0.5em,afterindent=false]{paragraph}
+\RaggedRight
+
+% Meeting details
+\title{Meeting Minutes -- Group 5}
+\author{Location: 0 B 6}
+\date{06 May 2023, 13:00--15:00}
+
+\begin{document}
+
+\maketitle
+
+\section*{Present}
+% Members actually present at the meeting
+Gabriel Apap (Chair),
+Damjan Filipovic (Minutes),
+Mark Mizzi 
+
+\section*{Discussion}
+
+\begin{enumerate}
+\item Reading and approval of minutes from previous meeting
+\begin{enumerate}
+    \item Approved
+\end{enumerate}
+
+\item Matters arising from minutes
+\begin{enumerate}
+    \item On point 3 a of previous minutes it is thought that the SysTick timer code was interfering with the LCD driver code but debugging was inconclusive as the error was inconsistent.
+\end{enumerate}
+
+\item Discussion of timer code
+\begin{enumerate}
+    \item The \verb!timer_set_callback! function was modified to set the timer period and start the timer.
+\end{enumerate}
+
+\item Discussion of DAC code
+\begin{enumerate}
+    \item Two functions were defined, \verb!tone_init! and \verb!tone_play_or_enqueue!, which initializes the tone generation code and produces or en-queues the tone respectively. The \verb!tone_play_or_enqueue! function is very similar to the \verb!start_or_enqueue! function.
+    \item The sine table is no longer hard coded but is generated using the \verb!sinewave_init()! function which is called with the \verb!tone_init! function.
+    \item Since the timer code was changed, inter-symbol spacing was temporarily removed from the code. This was accomplished by having \verb!timer_callback_isr! immediately call \verb!pop_and_dac_interrupt_enable! when it is done generating the samples.
+    \item The symbol length is specified in milliseconds. This allows for much finer control than earlier.
+\end{enumerate}
+
+\item Discussion of keypad code
+\begin{enumerate}
+    \item The rows and columns are initially set to a logic level of 1, with the columns being the output pins and the rows being set to pullup.
+    \item The \verb!start_keypad! function loops over the columns, setting them to 0, and then reading the rows to detect the exact key pressed.
+    \item Delays are added after the \verb!gpio_set! and the end of the outer loop to account for debouncing and spurious input.
+\end{enumerate}
+
+\item Assign work between team
+\begin{enumerate}
+    \item Inter-symbol spacing.
+    \item Documentation.
+    \item Implementation of LPF and debouncing.
+    \item More permanent version of the circuits.
+    \item Doing the keypad with interrupts.
+    \item Bring back k (sampling frequency divider) from before.
+    \item Settings.
+    \item Getting a casing for the DMTF encoder.
+\end{enumerate}
+
+\item Other matters.
+\begin{enumerate}
+    \item Tasks not assigned during this meeting will be assigned the following one.
+\end{enumerate}
+
+\end{enumerate}
+
+\section*{Actions}
+
+\begin{enumerate}
+
+\item Inter-symbol spacing
+\begin{flushright}
+Assigned to: \textbf{Mark Mizzi} \\
+Deadline: \textbf{Next meeting}
+\end{flushright}
+
+\item Documentation of timer and dac code, implementation of LPF and debouncing and sampling frequency divider.
+\begin{flushright}
+Assigned to: \textbf{Gabriel Apap} \\
+Deadline: \textbf{Next meeting}
+\end{flushright}
+
+\item Documentation of keypad code, keypad with interrupts
+\begin{flushright}
+Assigned to: \textbf{Damjan Filipovic} \\
+Deadline: \textbf{Next meeting}
+\end{flushright}
+
+% Add more actions as necessary
+
+\end{enumerate}
+
+\end{document}
