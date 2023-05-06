@@ -19,6 +19,7 @@ int main(void) {
 	
 	while (1) {
 		read_keypad(tone_play_or_enqueue);
+		delay_ms(400);
 	}
 }
 

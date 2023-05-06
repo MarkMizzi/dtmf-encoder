@@ -25,7 +25,7 @@ void read_keypad(void (*callback)(int, int)) {
 	
 	for (col = 0; col < KEYPAD_COLS; col++) {
 		gpio_set(colno_to_pin[col], 0);
-		delay_ms(200);
+		delay_us(100);
 		
 		for (row = 0; row < KEYPAD_ROWS; row++) {
 			if (gpio_get(rowno_to_pin[row]) == 0) {
