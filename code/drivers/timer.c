@@ -21,7 +21,7 @@
 static void (*timer_callback)(void) = NULL;
 static void (*timer_delay_callback)(void) = NULL;
 
-void timer_delay_callback_isr(void);
+static void timer_delay_callback_isr(void);
 
 //Using timer 0
 void timer_init(uint32_t period) {
@@ -75,7 +75,7 @@ void timer_set_callback(void (*callback)(void), uint32_t period) {
 	timer_enable();
 }
 
-void timer_delay_callback_isr(void) {
+static void timer_delay_callback_isr(void) {
 	if (timer_delay_callback != NULL) {
 		// we MUST run timer_disable() before, as timer_delay_callback() may itself enable the timer.
 		timer_disable();
