@@ -1,4 +1,5 @@
-#pragma once
+#ifndef DTMF_SYMBOLS_H
+#define DTMF_SYMBOLS_H
 
 #define SYMBOL_1 0x0
 #define SYMBOL_2 0x1
@@ -29,3 +30,5 @@
 #define N_COLS 4
 
 static char symbol_chars[N_ROWS * N_COLS] = {'1', '2', '3', 'A', '4', '5', '6', 'B', '7', '8', '9', 'C', '*', '0', '#', 'D'};
+
+#endif // DTMF_SYMBOLS_H

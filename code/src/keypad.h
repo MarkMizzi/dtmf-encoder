@@ -1,4 +1,6 @@
-#pragma once
+#ifndef KEYPAD_H
+#define KEYPAD_H
+
 #include <platform.h>
 
 //defining macros for the pins connected to the columns
@@ -23,3 +25,5 @@ static Pin rowno_to_pin[KEYPAD_ROWS] = {P_ROW_0, P_ROW_1, P_ROW_2, P_ROW_3};
 
 void keypad_init(void);
 void read_keypad(void (*callback)(int, int));
+
+#endif // KEYPAD_H
