@@ -11,7 +11,9 @@
 #include "queue.h"
 #include "lcd.h"
 
-#define NUM_STEPS 64
+
+#define RATE_MULTIPLIER 4
+#define NUM_STEPS 128
 
 /**
  * Macro function for computing the value of lower frequency sine wave component of a tone.
@@ -203,7 +205,7 @@ static unsigned base_freqs[N_COLS] = {1209, 1336, 1477, 1633};
 
 __STATIC_INLINE void timer_callback_isr(unsigned base_freq, unsigned freq) {
 	int sample = SIN_ADD(base_freq, freq, sample_index);
-	sample_index++;
+	sample_index += RATE_MULTIPLIER;
 	dac_set(sample);
 	
 	if (sample_index >= (base_freq * NUM_STEPS * SYMBOL_LENGTH_MS) / 1000U) {
@@ -223,7 +225,7 @@ static void dac_interrupt_enable_unsafe(int col, int row)
     // reset sample index.
     sample_index = 0;
 	
-    timer_set_callback(dispatch_table[row][col], FREQ_HZ_TO_CYCLES(base_freqs[col]*NUM_STEPS));
+    timer_set_callback(dispatch_table[row][col], FREQ_HZ_TO_CYCLES(base_freqs[col] * NUM_STEPS / RATE_MULTIPLIER));
 }
 
 static void pop_and_dac_interrupt_enable(void)
