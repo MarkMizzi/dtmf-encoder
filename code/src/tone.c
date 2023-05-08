@@ -109,10 +109,10 @@ static void dac_interrupt_disable(void);
 
 #define PI 3.1415927
 
-int sine_table[NUM_STEPS];
+static int sine_table[NUM_STEPS];
 
-void timer_callback_isr(unsigned base_freq, unsigned freq);
-void sinewave_init(void);
+static void timer_callback_isr(unsigned base_freq, unsigned freq);
+static void sinewave_init(void);
 
 void tone_init(void) {
 	dac_init();
@@ -125,7 +125,7 @@ void tone_init(void) {
 	timer_callback_isr_##F1##_##F2
 
 #define TIMER_CALLBACK_ISR(F1, F2) \
-	void TIMER_CALLBACK_ISR_NAME(F1, F2)(void)
+	static void TIMER_CALLBACK_ISR_NAME(F1, F2)(void)
 
 TIMER_CALLBACK_ISR(1209, 697); // 1
 TIMER_CALLBACK_ISR(1336, 697); // 2
@@ -172,7 +172,7 @@ TIMER_CALLBACK_ISR_DEF(1336, 941); // 0
 TIMER_CALLBACK_ISR_DEF(1477, 941); // #
 TIMER_CALLBACK_ISR_DEF(1633, 941); // D
 	
-void (*dispatch_table[N_COLS][N_ROWS])(void) = {
+static void (*dispatch_table[N_COLS][N_ROWS])(void) = {
 	{
 		TIMER_CALLBACK_ISR_NAME(1209, 697), // 1
 		TIMER_CALLBACK_ISR_NAME(1336, 697), // 2
@@ -211,7 +211,7 @@ __STATIC_INLINE void timer_callback_isr(unsigned base_freq, unsigned freq) {
 	}
 }
 
-void sinewave_init(void) {
+static void sinewave_init(void) {
 	int n;
 	for (n = 0; n < NUM_STEPS; n++) {
 		sine_table[n] = (int)((DAC_MASK) * (1 + sin(n * 2 * PI / NUM_STEPS)) / 2);
@@ -237,7 +237,7 @@ static void pop_and_dac_interrupt_enable(void)
 		}
 }
 
-bool dac_interrupt_enable(int col, int row)
+static bool dac_interrupt_enable(int col, int row)
 {
     // get old value of the flag
     // NOTE: this has to be int not bool, so that the compiler doesn't get any funny ideas.

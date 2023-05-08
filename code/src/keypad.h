@@ -18,8 +18,8 @@
 #define KEYPAD_ROWS 4
 #define KEYPAD_COLS 4
 
-static int colno_to_pin[KEYPAD_COLS] = {P_COL_0, P_COL_1, P_COL_2, P_COL_3};
-static int rowno_to_pin[KEYPAD_ROWS] = {P_ROW_0, P_ROW_1, P_ROW_2, P_ROW_3};
+static Pin colno_to_pin[KEYPAD_COLS] = {P_COL_0, P_COL_1, P_COL_2, P_COL_3};
+static Pin rowno_to_pin[KEYPAD_ROWS] = {P_ROW_0, P_ROW_1, P_ROW_2, P_ROW_3};
 
 void keypad_init(void);
 void read_keypad(void (*callback)(int, int));
