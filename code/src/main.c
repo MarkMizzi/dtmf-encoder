@@ -4,7 +4,6 @@
 #include "dtmf_symbols.h"
 #include "keypad.h"
 #include <platform.h>
-#include <gpio.h>
 
 int main(void) {
 	
