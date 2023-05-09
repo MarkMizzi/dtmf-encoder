@@ -11,8 +11,15 @@
 #include "queue.h"
 #include "lcd.h"
 
-
+/*! \brief Multiplier for the sampling rate. The size of #sine_table is the sampling rate multiplied by this number.
+ * 
+ * Having a #sine_table with more samples than necessary for the tone generation is beneficial for more accuracy when
+ * computing the lower frequency component of the tone.
+ */
 #define RATE_MULTIPLIER 4
+
+/*! \brief Size of (number of samples in) #sine_table
+*/
 #define NUM_STEPS 128
 
 /**
@@ -39,13 +46,13 @@
     ((sine_table[(IDX) & (NUM_STEPS-1)] + SIN((F1), (F2), (IDX))) >> 1)
 
 /** 
- * A flag which keeps track of whether a DAC interrupt is enabled or not
+ * \brief A flag which keeps track of whether a DAC interrupt is enabled or not
  * (i.e. whether a tone is being generated).
  */
 static int dac_interrupt_flag = 0;
 
 /**
- * A global variable that keeps track of the current sample index in 
+ * \brief A global variable that keeps track of the current sample index in 
  * between invocations of the DAC interrupt handler.
  *
  * The DAC interrupt handler is invoked on a timer to update the DAC (by setting it to
@@ -57,7 +64,7 @@ static int dac_interrupt_flag = 0;
 static int sample_index = 0;
 
 /**
- * Attempts to enable the DAC interrupt which generates tone for a given symbol.
+ * \brief Attempts to enable the DAC interrupt which generates tone for a given symbol.
  *
  * Two tones cannot be generated at once, so this function first performs an
  * atomic test and set on a global flag that determines whether a DAC interrupt
@@ -108,12 +115,29 @@ static void dac_interrupt_enable_unsafe(int col, int row);
  */
 static void dac_interrupt_disable(void);
 
-
+/*! \brief Approximation of pi used to generate the sine look-up table.
+ */
 #define PI 3.1415927
 
+/*! \brief Sine look-up table used to generate tone samples.
+ *
+ * This is initialized at program start-up.
+ */
 static int sine_table[NUM_STEPS];
 
+/**
+ * \brief Generic function which contains the implementation of tone generation/output.
+ * 
+ * This function is specialized for each DTMF tone using TIMER_CALLBACK_ISR() macros.
+ * 
+ * @param base_freq the base frequency (the higher frequency)
+ * @param freq the second frequency (the lower frequency)
+ */
 static void timer_callback_isr(unsigned base_freq, unsigned freq);
+
+/**
+ * \brief Initializes #sine_table with #NUM_STEPS samples from one period of the sine wave.
+ */
 static void sinewave_init(void);
 
 void tone_init(void) {
@@ -125,22 +149,22 @@ void tone_init(void) {
 }
 
 /**
-*Macro used to construct the name for the specialised timer interrupt for each DTMF tone
-*This is used mainly to create the dispatch table
-*@param F1 the base frequency (the higher frequency)
-*@param F2 the second frequency (the lower frequency)
-*/
-
+ * \brief Macro used to construct the name for the specialised timer interrupt for each DTMF tone.
+ * 
+ * This is used mainly to create the dispatch table.
+ * 
+ * @param F1 the base frequency (the higher frequency)
+ * @param F2 the second frequency (the lower frequency)
+ */
 #define TIMER_CALLBACK_ISR_NAME(F1, F2) \
 	timer_callback_isr_##F1##_##F2
 
 /**
-*Macro used to declare the specialised timer interrupt for each DTMF tone
-*
-*@param F1 the base frequency (the higher frequency)
-*@param F2 the second frequency (the lower frequency)
-*/
-
+ * \brief Macro used to declare the specialised timer interrupt for each DTMF tone.
+ *
+ * @param F1 the base frequency (the higher frequency)
+ * @param F2 the second frequency (the lower frequency)
+ */
 #define TIMER_CALLBACK_ISR(F1, F2) \
 	static void TIMER_CALLBACK_ISR_NAME(F1, F2)(void)
 	
@@ -166,12 +190,11 @@ TIMER_CALLBACK_ISR(1633, 941); // D
 
 
 /**
-*Macro used to define the specialised timer interrupt for each DTMF tone
-*
-*@param F1 the base frequency (the higher frequency)
-*@param F2 the second frequency (the lower frequency)
-*/
-
+ * \brief Macro used to define the specialised timer interrupt for each DTMF tone.
+ *
+ * @param F1 the base frequency (the higher frequency)
+ * @param F2 the second frequency (the lower frequency)
+ */
 #define TIMER_CALLBACK_ISR_DEF(F1, F2) \
 	TIMER_CALLBACK_ISR(F1, F2) {         \
 		timer_callback_isr(F1, F2);        \
@@ -230,12 +253,6 @@ static void (*dispatch_table[N_COLS][N_ROWS])(void) = {
 
 static unsigned base_freqs[N_COLS] = {1209, 1336, 1477, 1633};
 
-/**
-*Used by the macro to define the function that is called by timer_callback_isr.
-*Designed to be used with interrupts, it controls which sample is being set to the DAC and for how long a tone is played.
-*@param base_freq the base frequency (the higher frequency)
-*@param freq the second frequency (the lower frequency)
-*/
 __STATIC_INLINE void timer_callback_isr(unsigned base_freq, unsigned freq) {
 	int sample = SIN_ADD(base_freq, freq, sample_index);
 	sample_index += RATE_MULTIPLIER;
@@ -245,9 +262,7 @@ __STATIC_INLINE void timer_callback_isr(unsigned base_freq, unsigned freq) {
 		timer_set_callback_delay(pop_and_dac_interrupt_enable, PERIOD_MS_TO_CYCLES(INTERSYMBOL_SPACING_MS));
 	}
 }
-/**
-*Creates the Sine Wave LUT
-*/
+
 static void sinewave_init(void) {
 	int n;
 	for (n = 0; n < NUM_STEPS; n++) {
