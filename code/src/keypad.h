@@ -17,6 +17,8 @@
 #define P_ROW_2 P0_24
 #define P_ROW_3 P0_25
 
+#define P_INTERRUPT P2_10
+
 #define KEYPAD_ROWS 4
 #define KEYPAD_COLS 4
 
