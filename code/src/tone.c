@@ -120,15 +120,30 @@ void tone_init(void) {
 	dac_init();
 	sinewave_init();
 	
+	//Necessary for the timer to work
 	gpio_set_mode(P_SW, PullUp);
 }
+
+/**
+*Macro used to construct the name for the specialised timer interrupt for each DTMF tone
+*This is used mainly to create the dispatch table
+*@param F1 the base frequency (the higher frequency)
+*@param F2 the second frequency (the lower frequency)
+*/
 
 #define TIMER_CALLBACK_ISR_NAME(F1, F2) \
 	timer_callback_isr_##F1##_##F2
 
+/**
+*Macro used to declare the specialised timer interrupt for each DTMF tone
+*
+*@param F1 the base frequency (the higher frequency)
+*@param F2 the second frequency (the lower frequency)
+*/
+
 #define TIMER_CALLBACK_ISR(F1, F2) \
 	static void TIMER_CALLBACK_ISR_NAME(F1, F2)(void)
-
+	
 TIMER_CALLBACK_ISR(1209, 697); // 1
 TIMER_CALLBACK_ISR(1336, 697); // 2
 TIMER_CALLBACK_ISR(1477, 697); // 3
@@ -148,6 +163,14 @@ TIMER_CALLBACK_ISR(1209, 941); // *
 TIMER_CALLBACK_ISR(1336, 941); // 0
 TIMER_CALLBACK_ISR(1477, 941); // #
 TIMER_CALLBACK_ISR(1633, 941); // D
+
+
+/**
+*Macro used to define the specialised timer interrupt for each DTMF tone
+*
+*@param F1 the base frequency (the higher frequency)
+*@param F2 the second frequency (the lower frequency)
+*/
 
 #define TIMER_CALLBACK_ISR_DEF(F1, F2) \
 	TIMER_CALLBACK_ISR(F1, F2) {         \
@@ -174,6 +197,10 @@ TIMER_CALLBACK_ISR_DEF(1336, 941); // 0
 TIMER_CALLBACK_ISR_DEF(1477, 941); // #
 TIMER_CALLBACK_ISR_DEF(1633, 941); // D
 	
+/**
+*A dispatch table of function pointers to specialised DTMF tone interrupts. The array elements correspond to their symbols, and are organised in the same structure as the keypad.
+*/
+
 static void (*dispatch_table[N_COLS][N_ROWS])(void) = {
 	{
 		TIMER_CALLBACK_ISR_NAME(1209, 697), // 1
@@ -203,6 +230,12 @@ static void (*dispatch_table[N_COLS][N_ROWS])(void) = {
 
 static unsigned base_freqs[N_COLS] = {1209, 1336, 1477, 1633};
 
+/**
+*Used by the macro to define the function that is called by timer_callback_isr.
+*Designed to be used with interrupts, it controls which sample is being set to the DAC and for how long a tone is played.
+*@param base_freq the base frequency (the higher frequency)
+*@param freq the second frequency (the lower frequency)
+*/
 __STATIC_INLINE void timer_callback_isr(unsigned base_freq, unsigned freq) {
 	int sample = SIN_ADD(base_freq, freq, sample_index);
 	sample_index += RATE_MULTIPLIER;
@@ -212,7 +245,9 @@ __STATIC_INLINE void timer_callback_isr(unsigned base_freq, unsigned freq) {
 		timer_set_callback_delay(pop_and_dac_interrupt_enable, PERIOD_MS_TO_CYCLES(INTERSYMBOL_SPACING_MS));
 	}
 }
-
+/**
+*Creates the Sine Wave LUT
+*/
 static void sinewave_init(void) {
 	int n;
 	for (n = 0; n < NUM_STEPS; n++) {
@@ -269,6 +304,12 @@ static void dac_interrupt_disable(void)
     dac_interrupt_flag = false;
     timer_disable();
 }
+
+/**
+*First checks if the DAC is currently playing a tone. If it is, it plays a tone directly. If not it adds it to the queue.
+*@param row symbol's row on keypad
+*@param col symbol's column on keypad
+*/
 
 void tone_play_or_enqueue(int row, int col) {
 		int symbol = SYMBOL(row, col);

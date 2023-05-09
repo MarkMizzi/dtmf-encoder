@@ -10,16 +10,14 @@
 
 int main(void) {
 
+	volatile int i = 0;
+	
 	lcd_init();
 	lcd_clear();
-	keypad_init();
 	
-	tone_init();
-	__enable_irq();
-	
-	while (1) {
-		read_keypad(tone_play_or_enqueue);
-		delay_ms(400);
+	for(i=0; i < 64; i++){
+		lcd_put_char('A');
+		delay_ms(200);
 	}
 }
 

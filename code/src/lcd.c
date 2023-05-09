@@ -34,6 +34,9 @@
 // Internal bus mirror value for serial bus only
 uint8_t _spi_bus;
 
+//Keeps track of where
+static int char_count;
+
 // Low level writes to LCD serial bus only (serial expander)
 void spi_writeBus() {
 	uint8_t c = _spi_bus;
@@ -181,6 +184,7 @@ void lcd_init(void) {
 	lcd_write_cmd(0x28); // Function set.
 	lcd_write_cmd(0x0C);
 	lcd_write_cmd(0x06);
+	char_count = 0;
 	lcd_set_cursor(0, 0);
 }
 
@@ -199,13 +203,23 @@ void lcd_set_cursor(int column, int row) {
 
 // Clears the LCD and relocates the cursor to {0,0}.
 void lcd_clear(void) {
+	char_count = 0;
 	lcd_write_cmd(0x01);
 	delay_us(1520);
 }
 
 // Prints the specified character to the LCD and increments the cursor.
 void lcd_put_char(char c) {
+	if (char_count == 32){
+		lcd_clear();
+		lcd_set_cursor(0, 0);
+	}
+	
+	else if (char_count == 16){
+		lcd_set_cursor(0, 1);
+	}
 	lcd_write_data(c);
+	char_count++;
 }
 
 // Prints the null terminated string to the LCD and increments the cursor.
