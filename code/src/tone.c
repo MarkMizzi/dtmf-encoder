@@ -16,7 +16,7 @@
  * Having a #sine_table with more samples than necessary for the tone generation is beneficial for more accuracy when
  * computing the lower frequency component of the tone.
  */
-#define RATE_MULTIPLIER 4
+#define RATE_MULTIPLIER 32
 
 /*! \brief Size of (number of samples in) #sine_table
 */
