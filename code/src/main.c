@@ -18,6 +18,6 @@ int main(void) {
 	keypad_init();
 	
 	while (1) {
-		__asm("WFI");
+		__WFI();
 	}
 }
