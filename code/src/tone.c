@@ -49,7 +49,7 @@
  * \brief A flag which keeps track of whether a DAC interrupt is enabled or not
  * (i.e. whether a tone is being generated).
  */
-static int dac_interrupt_flag = 0;
+int dac_interrupt_flag = 0;
 
 /**
  * \brief A global variable that keeps track of the current sample index in 

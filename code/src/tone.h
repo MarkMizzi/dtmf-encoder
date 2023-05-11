@@ -18,4 +18,7 @@ void tone_init(void);
  * @param row The row of the symbol whose tone is to be generated.
  */
 void tone_play_or_enqueue(int row, int col);
+
+extern int dac_interrupt_flag;
+
 #endif // TONE_H
