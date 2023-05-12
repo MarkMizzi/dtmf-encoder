@@ -459,6 +459,51 @@
               <FileType>5</FileType>
               <FilePath>.\drivers\uart.h</FilePath>
             </File>
+            <File>
+              <FileName>lpc_libcfg_default.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\drivers\lpc_libcfg_default.h</FilePath>
+            </File>
+            <File>
+              <FileName>lpc_types.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\drivers\lpc_types.h</FilePath>
+            </File>
+            <File>
+              <FileName>lpc_eeprom.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\drivers\lpc_eeprom.h</FilePath>
+            </File>
+            <File>
+              <FileName>lpc_clkpwr.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\drivers\lpc_clkpwr.h</FilePath>
+            </File>
+            <File>
+              <FileName>i2s.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\drivers\i2s.h</FilePath>
+            </File>
+            <File>
+              <FileName>dma.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\drivers\dma.h</FilePath>
+            </File>
+            <File>
+              <FileName>lpc_clkpwr.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\drivers\lpc_clkpwr.c</FilePath>
+            </File>
+            <File>
+              <FileName>lpc_eeprom.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\drivers\lpc_eeprom.c</FilePath>
+            </File>
+            <File>
+              <FileName>lpc_types.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\drivers\lpc_types.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
