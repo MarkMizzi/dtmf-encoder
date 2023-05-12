@@ -143,11 +143,6 @@ static void timer_callback_isr(unsigned base_freq, unsigned freq);
 static void sinewave_init(void);
 
 void tone_init(void) {
-	Settings Current;
-	EEPROM_Read(0, 0, &Current, MODE_16_BIT, sizeof(Settings)>>1);
-	rate_multiplier = Current.sampling_rate_multiplier;
-	intersymbol_spacing_ms = Current.inter_symbol_spacing;
-	symbol_length_ms = Current.symbol_length;
 	dac_init();
 	sinewave_init();
 	
@@ -261,17 +256,17 @@ static unsigned base_freqs[N_COLS] = {1209, 1336, 1477, 1633};
 
 __STATIC_INLINE void timer_callback_isr(unsigned base_freq, unsigned freq) {
 	int sample = SIN_ADD(base_freq, freq, sample_index);
-	sample_index += rate_multiplier;
+	sample_index += settings.sampling_rate_multiplier;
 	dac_set(sample);
 	
-	if (sample_index >= (base_freq * NUM_STEPS * symbol_length_ms) / 1000U) {
-		timer_set_callback_delay(pop_and_dac_interrupt_enable, PERIOD_MS_TO_CYCLES(intersymbol_spacing_ms));
+	if (sample_index >= (base_freq * NUM_STEPS * settings.symbol_length) / 1000U) {
+		timer_set_callback_delay(pop_and_dac_interrupt_enable, PERIOD_MS_TO_CYCLES(settings.inter_symbol_spacing));
 	}
 }
 
 static void sinewave_init(void) {
 	int n;
-	for (n = 0; n < (NUM_STEPS*rate_multiplier); n++) {
+	for (n = 0; n < (NUM_STEPS*settings.sampling_rate_multiplier); n++) {
 		sine_table[n] = (int)((DAC_MASK) * (1 + sin(n * 2 * PI / NUM_STEPS)) / 2);
 	}
 }
@@ -281,7 +276,7 @@ static void dac_interrupt_enable_unsafe(int col, int row)
     // reset sample index.
     sample_index = 0;
 	
-    timer_set_callback(dispatch_table[row][col], FREQ_HZ_TO_CYCLES(base_freqs[col] * NUM_STEPS / rate_multiplier));
+    timer_set_callback(dispatch_table[row][col], FREQ_HZ_TO_CYCLES(base_freqs[col] * NUM_STEPS / settings.sampling_rate_multiplier));
 }
 
 static void pop_and_dac_interrupt_enable(void)
