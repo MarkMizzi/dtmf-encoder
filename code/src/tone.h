@@ -1,13 +1,6 @@
-#include "lpc_types.h"
-
 #ifndef TONE_H
 #define TONE_H
 
-typedef struct settings{
-	uint16_t InterSymbolSpacing;
-	uint16_t SymbolLength;
-	uint16_t SamplingRateMultiplier;
-}Settings;
 /**
  * \brief Initialises the DAC and creates the Sin Wave LUT.
  */
