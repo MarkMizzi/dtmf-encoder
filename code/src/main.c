@@ -7,7 +7,12 @@
 #include <lpc_eeprom.h>
 #include <platform.h>
 
-Settings Current;
+Settings current;
+
+#define DEFAULT_INTER_SYMBOL_SPACING_MS 200
+#define DEFAULT_SYMBOL_LENGTH_MS 500
+#define DEFAULT_SAMPLING_RATE_MULTIPLIER 2
+
 #define PCTIM1 2
 #define PCUART0 3
 #define PCUART1 4
@@ -35,10 +40,11 @@ int main(void) {
 	EEPROM_Init();
 	__enable_irq();
 	
-	Current.inter_symbol_spacing=200;
-	Current.symbol_length=500;
-	Current.sampling_rate_multiplier=2;
-	EEPROM_Write(0, 0, &Current, MODE_16_BIT, sizeof(Settings)>>1);
+	current.inter_symbol_spacing = DEFAULT_INTER_SYMBOL_SPACING_MS;
+	current.symbol_length = DEFAULT_SYMBOL_LENGTH_MS;
+	current.sampling_rate_multiplier = DEFAULT_SAMPLING_RATE_MULTIPLIER;
+	
+	EEPROM_Write(0, 0, &current, MODE_16_BIT, sizeof(Settings)>>1);
 	
 	settings_init();
 	

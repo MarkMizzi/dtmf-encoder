@@ -14,4 +14,5 @@ void tone_init();
  * @param row The row of the symbol whose tone is to be generated.
  */
 void tone_play_or_enqueue(int row, int col);
+
 #endif // TONE_H

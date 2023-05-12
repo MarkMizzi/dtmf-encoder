@@ -230,7 +230,6 @@ TIMER_CALLBACK_ISR_DEF(1633, 941); // D
 /**
 *A dispatch table of function pointers to specialised DTMF tone interrupts. The array elements correspond to their symbols, and are organised in the same structure as the keypad.
 */
-
 static void (*dispatch_table[N_COLS][N_ROWS])(void) = {
 	{
 		TIMER_CALLBACK_ISR_NAME(1209, 697), // 1
@@ -316,7 +315,8 @@ static bool dac_interrupt_enable(int col, int row)
 
     if (!flag)
     {
-        dac_interrupt_enable_unsafe(col, row);
+			dac_init();
+      dac_interrupt_enable_unsafe(col, row);
     }
     return !flag; // return success
 }
