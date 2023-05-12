@@ -9,6 +9,17 @@
 Settings Current;
 	
 
+void power_down_peripherals()
+{
+	LPC_SC->PCONP &= ~(1 << PCTIM1);
+	LPC_SC->PCONP &= ~(1 << PCUART0);
+	LPC_SC->PCONP &= ~(1 << PCUART1);
+	LPC_SC->PCONP &= ~(1 << PCI2C0);
+	LPC_SC->PCONP &= ~(1 << PCI2C1);
+	LPC_SC->PCONP &= ~(1 << PCI2C2);
+	LPC_SC->PCONP &= ~(1 << PCRTC);
+}
+
 int main(void) {
 	
 	lcd_init();
