@@ -7,7 +7,6 @@
 #include <lpc_eeprom.h>
 
 Settings Current;
-	
 #define PCTIM1 2
 #define PCUART0 3
 #define PCUART1 4
@@ -45,6 +44,6 @@ int main(void) {
 	tone_init();
 	
 	while (1) {
-		__asm("WFI");
+		__WFI();
 	}
 }
