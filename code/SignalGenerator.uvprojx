@@ -569,13 +569,23 @@
               <FileType>1</FileType>
               <FilePath>.\src\keypad.c</FilePath>
             </File>
+            <File>
+              <FileName>settings.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\settings.c</FilePath>
+            </File>
+            <File>
+              <FileName>settings.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\settings.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
-          <GroupName>::CMSIS</GroupName>
+          <GroupName>::Device</GroupName>
         </Group>
         <Group>
-          <GroupName>::Device</GroupName>
+          <GroupName>::CMSIS</GroupName>
         </Group>
       </Groups>
     </Target>
