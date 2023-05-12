@@ -4,39 +4,28 @@
 #include "dtmf_symbols.h"
 #include "keypad.h"
 #include <platform.h>
+#include <lpc_eeprom.h>
 
-#define PCTIM1 2
-#define PCUART0 3
-#define PCUART1 4
-#define PCI2C0 7 // - may need it for the DAC
-#define PCRTC 9
-#define PCI2C1 19 // - may need it for the DAC
-#define PCI2C2 26 // - may also need it for the DAC
-
-void power_down_peripherals()
-{
-	LPC_SC->PCONP = ~(1 << PCTIM1);
-	LPC_SC->PCONP = ~(1 << PCUART0);
-	LPC_SC->PCONP = ~(1 << PCUART1);
-	LPC_SC->PCONP = ~(1 << PCI2C0);
-	LPC_SC->PCONP = ~(1 << PCI2C1);
-	LPC_SC->PCONP = ~(1 << PCI2C2);
-	LPC_SC->PCONP = ~(1 << PCRTC);
-}
+Settings Current;
+	
 
 int main(void) {
-	power_down_peripherals();
-	keypad_set_read_callback(tone_play_or_enqueue);
 	
 	lcd_init();
 	lcd_clear();
-	
-	tone_init();
+	EEPROM_Init();
 	__enable_irq();
 	
-	keypad_init();
+	Current.InterSymbolSpacing=200;
+	Current.SymbolLength=500;
+	Current.SamplingRateMultiplier=2;
+	EEPROM_Write(0, 0, &Current, MODE_16_BIT, sizeof(Settings)>>1);
+	
+	keypad_init();	
+	
+	tone_init();
 	
 	while (1) {
-		__WFI();
+		__asm("WFI");
 	}
 }

@@ -78,5 +78,4 @@ void read_keypad(int sources) {
 	
 	// re-enable interrupts on pins.
 	gpio_set_trigger(P_INTERRUPT, Falling);
-	delay_ms(80);
 }

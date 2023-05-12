@@ -4,7 +4,9 @@
 #include <timer.h>
 #include <gpio.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <limits.h>
+#include "lpc_eeprom.h"
 #include "tone.h"
 #include "delay.h"
 #include "dtmf_symbols.h"
@@ -16,11 +18,15 @@
  * Having a #sine_table with more samples than necessary for the tone generation is beneficial for more accuracy when
  * computing the lower frequency component of the tone.
  */
-#define RATE_MULTIPLIER 32
 
 /*! \brief Size of (number of samples in) #sine_table
 */
 #define NUM_STEPS 128
+
+int RATE_MULTIPLIER;
+int SYMBOL_LENGTH_MS;
+int INTERSYMBOL_SPACING_MS;
+
 
 /**
  * Macro function for computing the value of lower frequency sine wave component of a tone.
@@ -49,7 +55,7 @@
  * \brief A flag which keeps track of whether a DAC interrupt is enabled or not
  * (i.e. whether a tone is being generated).
  */
-int dac_interrupt_flag = 0;
+static int dac_interrupt_flag = 0;
 
 /**
  * \brief A global variable that keeps track of the current sample index in 
@@ -141,6 +147,11 @@ static void timer_callback_isr(unsigned base_freq, unsigned freq);
 static void sinewave_init(void);
 
 void tone_init(void) {
+	Settings Current;
+	EEPROM_Read(0, 0, &Current, MODE_16_BIT, sizeof(Settings)>>1);
+	RATE_MULTIPLIER = Current.SamplingRateMultiplier;
+	INTERSYMBOL_SPACING_MS = Current.InterSymbolSpacing;
+	SYMBOL_LENGTH_MS = Current.SymbolLength;
 	dac_init();
 	sinewave_init();
 	
@@ -265,7 +276,7 @@ __STATIC_INLINE void timer_callback_isr(unsigned base_freq, unsigned freq) {
 
 static void sinewave_init(void) {
 	int n;
-	for (n = 0; n < NUM_STEPS; n++) {
+	for (n = 0; n < (NUM_STEPS*RATE_MULTIPLIER); n++) {
 		sine_table[n] = (int)((DAC_MASK) * (1 + sin(n * 2 * PI / NUM_STEPS)) / 2);
 	}
 }
