@@ -4,12 +4,26 @@
 #include <gpio.h>
 #include <stddef.h>
 
+/**
+ * \brief Pointer to a function that is called in the read_keypad() code after the column-row combination for the pressed key is obtained
+ */
 void (*read_keypad_callback)(int, int) = NULL;
 
 void keypad_set_read_callback(void (*callback)(int, int)) {
 	read_keypad_callback = callback;
 }
 
+/**
+ * \brief Reads the keypad for any keypresses
+ *
+ *			  The columns are set high and then they are iteratively set to low.
+ *				For every column set to low, the row pins logic values are read.
+ *				Every time a low row pin is detected the read_keypad_callback() function is called.
+ *				The appropriate column pins are set back to high after every row pin has been read.
+ *
+ *				Delays are added after setting the column pins to either low or high to account for debouncing.
+ * @param int Bitmask used to verify that the interrupt comes from the set Interrupt pin
+ */
 static void read_keypad(int);
 
 void keypad_init(void) {
