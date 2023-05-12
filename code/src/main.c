@@ -3,8 +3,9 @@
 #include "lcd.h"
 #include "dtmf_symbols.h"
 #include "keypad.h"
-#include <platform.h>
+#include "settings.h"
 #include <lpc_eeprom.h>
+#include <platform.h>
 
 Settings Current;
 #define PCTIM1 2
@@ -34,10 +35,12 @@ int main(void) {
 	EEPROM_Init();
 	__enable_irq();
 	
-	Current.InterSymbolSpacing=200;
-	Current.SymbolLength=500;
-	Current.SamplingRateMultiplier=2;
+	Current.inter_symbol_spacing=200;
+	Current.symbol_length=500;
+	Current.sampling_rate_multiplier=2;
 	EEPROM_Write(0, 0, &Current, MODE_16_BIT, sizeof(Settings)>>1);
+	
+	settings_init();
 	
 	keypad_init();	
 	

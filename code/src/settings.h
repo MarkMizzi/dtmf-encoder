@@ -1,6 +1,12 @@
+#ifndef SETTINGS_H
+#define SETTINGS_H
+
 #include "lpc_types.h"
 
-int BOOT_MODE;
+extern int BOOT_MODE;
+extern int rate_multiplier;
+extern int symbol_length_ms;
+extern int intersymbol_spacing_ms;
 
 typedef struct settings{
 	uint16_t inter_symbol_spacing;
@@ -11,3 +17,6 @@ typedef struct settings{
 void boot_init(void);
 void boot(int row, int col);
 void settings();
+void settings_init(void);
+
+#endif

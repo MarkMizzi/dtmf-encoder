@@ -1,7 +1,7 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-#define QUEUE_N 4096
+#define QUEUE_N 2048
 
 extern int queue_size;
 extern int queue[QUEUE_N];

@@ -9,6 +9,7 @@
 
 #define LCD_CHAR 33
 
+int BOOT_MODE;
 int rate_multiplier;
 int symbol_length_ms;
 int intersymbol_spacing_ms;

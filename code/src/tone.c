@@ -1,3 +1,10 @@
+#include "tone.h"
+#include "delay.h"
+#include "dtmf_symbols.h"
+#include "queue.h"
+#include "lcd.h"
+#include "lpc_eeprom.h"
+#include "settings.h"
 #include <platform.h>
 #include <math.h>
 #include <dac.h>
@@ -6,12 +13,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <limits.h>
-#include "lpc_eeprom.h"
-#include "tone.h"
-#include "delay.h"
-#include "dtmf_symbols.h"
-#include "queue.h"
-#include "lcd.h"
 
 /*! \brief Multiplier for the sampling rate. The size of #sine_table is the sampling rate multiplied by this number.
  * 
@@ -22,11 +23,6 @@
 /*! \brief Size of (number of samples in) #sine_table
 */
 #define NUM_STEPS 128
-
-int rate_multiplier;
-int symbol_length_ms;
-int intersymbol_spacing_ms;
-
 
 /**
  * Macro function for computing the value of lower frequency sine wave component of a tone.
@@ -149,9 +145,9 @@ static void sinewave_init(void);
 void tone_init(void) {
 	Settings Current;
 	EEPROM_Read(0, 0, &Current, MODE_16_BIT, sizeof(Settings)>>1);
-	rate_multiplier = Current.SamplingRateMultiplier;
-	intersymbol_spacing_ms = Current.InterSymbolSpacing;
-	symbol_length_ms = Current.SymbolLength;
+	rate_multiplier = Current.sampling_rate_multiplier;
+	intersymbol_spacing_ms = Current.inter_symbol_spacing;
+	symbol_length_ms = Current.symbol_length;
 	dac_init();
 	sinewave_init();
 	
