@@ -198,6 +198,7 @@ void lcd_set_cursor(int column, int row) {
 	int address;
 	address = (row * 0x40) + column;
 	address |= 0x80;
+	char_count = (row << 4) + column;
 	lcd_write_cmd(address);
 }
 

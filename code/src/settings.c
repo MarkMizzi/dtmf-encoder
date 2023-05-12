@@ -5,15 +5,16 @@
 #include "tone.h"
 #include "lpc_eeprom.h"
 #include <stdio.h>
+#include <string.h>
 
 
-#define LCD_CHAR 33
+#define LCD_CHAR 16
 
 int BOOT_MODE;
 int rate_multiplier;
 int symbol_length_ms;
 int intersymbol_spacing_ms;
-char string[LCD_CHAR] = {0};
+char lcd_string[LCD_CHAR] = {0};
 
 void boot_init(void){
 	lcd_clear();
@@ -30,9 +31,10 @@ void settings_init(void){
 	intersymbol_spacing_ms = Current.inter_symbol_spacing;
 	symbol_length_ms = Current.symbol_length;
 	lcd_clear();
-	sprintf(string, "ISS: %d", Current.inter_symbol_spacing);
-	lcd_print(string);
-	
+	sprintf(lcd_string, "ISS: %d", Current.inter_symbol_spacing);
+	lcd_print(lcd_string);
+	lcd_set_cursor(0,1);
+	lcd_print("*:CLR      #:OK");
 }
 
 void boot(int row, int col){
