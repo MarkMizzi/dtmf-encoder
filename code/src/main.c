@@ -8,6 +8,14 @@
 
 Settings Current;
 	
+#define PCTIM1 2
+#define PCUART0 3
+#define PCUART1 4
+#define PCI2C0 7
+#define PCI2C1 19
+#define PCI2C2 26
+#define PCRTC 9
+#define PCGPIO 15
 
 void power_down_peripherals()
 {
