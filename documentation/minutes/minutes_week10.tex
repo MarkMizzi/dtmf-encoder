@@ -1,0 +1,170 @@
+\documentclass[11pt,a4paper]{scrartcl}
+
+% Support for UTF-8 and non-English letters require the following two
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+% Font packages
+\usepackage[default,defaultsans,oldstyle,proportional]{lato}
+\usepackage[scaled]{beramono}
+\usepackage{sfmath}
+% Optimized justification via improved microtypography on character level
+\usepackage{microtype}
+\usepackage{ragged2e}
+\usepackage[none]{hyphenat} % disable all hyphenation
+\usepackage[colorlinks=true,
+            urlcolor=blue]{hyperref}
+\setlength{\emergencystretch}{3em} % allow extra hfill, needed if hyphenation disabled
+%\overfullrule=1mm % mark overfull boxes
+%\usepackage{showframe} % show edges of text areas
+% Page layout
+\usepackage[left=20mm,right=20mm,top=20mm,bottom=20mm,
+   nohead,foot=10mm]{geometry}
+% SVN metadata
+\usepackage[today,revrange,nofancy]{svninfo}
+\svnInfo $Id: minutes_week09.tex 6594 2023-05-04 14:10:03Z dfil0003 $
+% Page headers
+\usepackage{scrlayer-scrpage}
+\usepackage{lastpage}
+\usepackage{fancyvrb}
+% Page header
+\KOMAoptions{headsepline=0pt,plainheadsepline=off}
+\ihead*{}
+\chead*{}
+\ohead*{}
+% Page footer
+\KOMAoptions{footsepline=0pt,plainfootsepline=off}
+\ifoot*{Last edited: \svnMaxToday}
+\cfoot*{Page \thepage{} of \pageref{LastPage}}
+\ofoot*{Document v.\svnInfoMaxRevision}
+% Text layout
+\KOMAoption{parskip}{never}
+\newlength{\myparindent}
+\newlength{\myparskip}
+\setlength{\myparindent}{0pt}
+\setlength{\myparskip}{5pt plus 1pt}
+\setparsizes{\myparindent}{\myparskip}{0.1\linewidth plus 1fil}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=3pt,afterindent=false]{section}
+\RedeclareSectionCommand[beforeskip=6pt,afterskip=-0.5em,afterindent=false]{paragraph}
+\RaggedRight
+
+% Meeting details
+\title{Meeting Minutes -- Group 5}
+\author{Location: 0 B 6}
+\date{06 May 2023, 13:00--15:00}
+
+\begin{document}
+
+\maketitle
+
+\section*{Present}
+% Members actually present at the meeting
+Gabriel Apap (Minutes),
+Damjan Filipovic,
+Mark Mizzi (Chair)
+
+\section*{Discussion}
+
+\begin{enumerate}
+
+\item Reading and approval of minutes from previous meeting
+\begin{enumerate}
+    \item Read and Approved
+\end{enumerate}
+
+
+\item Matters arising from minutes
+\begin{enumerate}
+    \item Regarding points 6d and 6h, the team decided it would be wiser to spend this time on implementing features and working on the video rather than these. It has been decided that the circuits will remain on a breadboard and that no housing will be made for the electronics.
+    \item Documentation and Settings still need to be done.
+\end{enumerate}
+
+\item Progress report from team members.
+\begin{enumerate}
+    \item Mark - Keypad with interrupts, Low power mode, wrote code for menus and settings.
+    \item Gabriel - Documentation of tone code, code for settings and quickdial, EEPROM drivers, LPF and Debouncing implemented
+    \item Damjan - Documentation of keypad code, implemented the shutdown of unneeded peripherals.
+\end{enumerate}
+
+\item Discussion of changes and additions made to system.
+    \begin{enumerate}
+        \item Interrupt-driven keypad
+        \begin{enumerate}
+            \item It was discovered that only one pin on each port can be triggered with falling edge, so it was decided that keypad interrupts would only be triggered by one pin, that is taken from a quad AND gate that takes each row as input.
+            \item Multiple key triggers can sometimes still occur even with debouncing and software delays. It is suspected that this is due to the irregularity of the resistances on each switch on the keypad.
+            \item Debouncing was only implemented on the interrupt pin due to the way that the pullup resistor is connected internally in the circuit. This is not ideal. Time allowing, team will look into either using their own pullup resistor so that a debouncing circuit can be properly implemented or the use of an or gate as a debouncer.
+            \item Its important to note that hardware debouncing is necessary for the interrupt pin as no software delay can stop an interrupt from triggering.
+        \end{enumerate}
+        \item LPF
+        \begin{enumerate}
+            \item A bandpass filter (low pass and high pass) was implemented only allowing the range of frequencies used in DTMF encoding to let through. This has resulted in a cleaner sound.
+        \end{enumerate}
+        \item Storage driver
+        \begin{enumerate}
+            \item A \href{https://github.com/RT-Thread/realboard-lpc4088/tree/master/software/lpcware_lpc408x/Drivers}{driver} was found and adapted to our needs. Only drawback is that since this was not custom made for our needs, some excess code is in these files. If we overshoot the maximum linker size, any unnecessary code will be removed from these files.
+        \end{enumerate}
+        \item Settings and quickdial implementation.
+        \begin{enumerate}
+            \item While this code is unfinished the structure has been decided on. The system will initially start in a boot menu where the user can choose between 3 options; Manual DTMF, Settings or QuickDial. Settings will allow you to store your InterSymbol Spacing, Symbol Length and Look Up Table Size. These will be stored and kept in between resets of the device. Profiles will allow you to store different settings and even pre dialed commands.
+            \item It is expected that not much work is left for settings. QuickDial should also not take that long.
+        \end{enumerate}
+    \end{enumerate}
+
+\item Delegation of immediate tasks
+    \begin{enumerate}
+        \item Video
+        \begin{enumerate}
+            \item Damjan will handle the editing of the video.
+            \item The video will not make use of any animations or on screen video of people. However it will have demos, voiceovers and diagrams.
+            \item The voiceover for the scipt will be split up between all members.
+            \item The script will be mostly based on the design brief.
+        \end{enumerate}
+        \item Design brief
+        \begin{enumerate}
+            \item Design brief will be focused on once all code has been written which is expected to be soon.
+            \item Diagrams needed - Circuit diagram, flowchart for settings, flowchart for keypad.
+            \item Explanations on what happens after tone production is needed. Design brief will summarise the doxygen documentation but at a higher level.
+        \end{enumerate}
+        \item Doxygen documentation
+        \begin{enumerate}
+            \item Most of the doxygen documentation is done however the new code still needs proper documentation. This means settings, menus and quickdial. Once these are finished proper documentation will be propmtly added.
+        \end{enumerate}
+        \item Housing and perfboard implementation.
+        \begin{enumerate}
+            \item No longer relevant refer to point 2a.
+        \end{enumerate}
+    \end{enumerate}
+
+\item Other matters
+\begin{enumerate}
+    \item It was decided that finishing the code and having a fully working final product is the main priority and that all other points will be focused on after this. 
+\end{enumerate}
+
+\end{enumerate}
+
+\section*{Actions}
+
+\begin{enumerate}
+
+\item Settings and its documentation
+\begin{flushright}
+Assigned to: \textbf{Mark Mizzi} \\
+Deadline: \textbf{Wednesday 17th May}
+\end{flushright}
+
+\item Finish quickdial and its documentation. Ensure EEPROM code is sufficiently documented and to add our own where needed.
+\begin{flushright}
+Assigned to: \textbf{Gabriel Apap} \\
+Deadline: \textbf{Wednesday 17th May}
+\end{flushright}
+
+\item Work on diagrams for video, flowchart for keypad, continue working on design brief.
+\begin{flushright}
+Assigned to: \textbf{Damjan Filipovic} \\
+Deadline: \textbf{Wednesday 17th May}
+\end{flushright}
+
+% Add more actions as necessary
+
+\end{enumerate}
+
+\end{document}
