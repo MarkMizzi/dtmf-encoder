@@ -8,8 +8,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#define LCD_CHAR 16
-
+/** \brief Global variable containing current system settings.
+ */
 Settings settings;
 
 void boot_mode_init(void) {

@@ -3,8 +3,8 @@
 
 /** \brief Displays OK and Clear options for a menu that processes user input.
  *
- * For such menus, the "*" key is used to clear user input, 
- * while the "#" key is used to submit user input.
+ * For such menus, the `*` key is used to clear user input, 
+ * while the `#` key is used to submit user input.
  */
 void display_menu_options();
 
