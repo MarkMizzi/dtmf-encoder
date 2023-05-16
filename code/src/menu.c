@@ -55,7 +55,7 @@ void clear_user_input() {
 	for (; i < LCD_CHARS; ++i) {
 		lcd_put_char(' ');
 	}
-	lcd_set_cursor(prompt_length, 0);
+	lcd_set_cursor(prompt_length + 1, 0);
 }
 
 void keypad_input_to_number(int row, int col, int *curr) {

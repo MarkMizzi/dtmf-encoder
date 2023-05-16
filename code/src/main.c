@@ -57,6 +57,8 @@ int main(void) {
 	EEPROM_Init();
 	__enable_irq();
 	
+	load_settings();
+	
 	keypad_init();
 	
 	boot_mode_init();

@@ -13,7 +13,6 @@
 Settings settings;
 
 void boot_mode_init(void) {
-	load_settings();
 	lcd_clear();
 	lcd_print("1:KEYPD 2:QCKDL");
 	lcd_set_cursor(0, 1);
@@ -44,7 +43,7 @@ void settings_mode_init(void){
 	lcd_clear();
 	lcd_print("1:ISS 2:SYMLEN");
 	lcd_set_cursor(0, 1);
-	lcd_print("3:SAMP RATE MUL");
+	lcd_print("3:QUALITY");
 	keypad_set_read_callback(settings_menu_input);
 }
 
@@ -108,11 +107,93 @@ void set_inter_symbol_spacing_menu_input(int row, int col) {
 	}
 }
 
-void set_symbol_length_mode_init(void) {}
-void set_symbol_length_menu_input(int row, int col) {}
+void set_symbol_length_mode_init(void) {
+	lcd_clear();
+	display_menu_options();
+	menu_prompt("SYMLEN: %d", settings.symbol_length);
+	keypad_set_read_callback(set_symbol_length_menu_input);
+}
+	
+void set_symbol_length_menu_input(int row, int col) {
+	static int symbol_length = 0;
 
-void set_lut_logsize_mode_init(void) {}
-void set_lut_logsize_menu_input(int row, int col) {}
+	int symbol = SYMBOL(row, col);	
+	switch (symbol) {
+		case SYMBOL_0:
+		case SYMBOL_1:
+		case SYMBOL_2:
+		case SYMBOL_3:
+		case SYMBOL_4:
+		case SYMBOL_5:
+		case SYMBOL_6:
+		case SYMBOL_7:
+		case SYMBOL_8:
+		case SYMBOL_9:
+			lcd_put_char(symbol_chars[symbol]);
+			keypad_input_to_number(row, col, &symbol_length);
+			break;
+		
+		case SYMBOL_POUND:
+			if (symbol_length >= MIN_SYMBOL_LENGTH_MS &&
+				  symbol_length <= MAX_SYMBOL_LENGTH_MS) {
+				settings.symbol_length = symbol_length;
+				store_settings();
+			}
+			symbol_length = 0;
+			
+			boot_mode_init();
+			break;
+		
+		case SYMBOL_STAR:
+			symbol_length = 0;
+			clear_user_input();
+			break;
+	}
+}
+
+void set_lut_logsize_mode_init(void) {
+	lcd_clear();
+	display_menu_options();
+	menu_prompt("QUALITY: %d", settings.symbol_length);
+	keypad_set_read_callback(set_symbol_length_menu_input);
+}
+	
+void set_lut_logsize_menu_input(int row, int col) {
+	static int lut_logsize = 0;
+
+	int symbol = SYMBOL(row, col);	
+	switch (symbol) {
+		case SYMBOL_0:
+		case SYMBOL_1:
+		case SYMBOL_2:
+		case SYMBOL_3:
+		case SYMBOL_4:
+		case SYMBOL_5:
+		case SYMBOL_6:
+		case SYMBOL_7:
+		case SYMBOL_8:
+		case SYMBOL_9:
+			lcd_put_char(symbol_chars[symbol]);
+			keypad_input_to_number(row, col, &lut_logsize);
+			break;
+		
+		case SYMBOL_POUND:
+			if (lut_logsize >= MIN_LUT_LOGSIZE &&
+				  lut_logsize <= MAX_LUT_LOGSIZE) {
+				settings.lut_logsize = lut_logsize;
+				store_settings();
+			}
+			lut_logsize = 0;
+			
+			boot_mode_init();
+			break;
+		
+		case SYMBOL_STAR:
+			lut_logsize = 0;
+			clear_user_input();
+			break;
+	}
+}
 
 void check_settings(Settings *settings) {
 	if (settings->checksum != SETTINGS_CHECKSUM(*settings)) {
