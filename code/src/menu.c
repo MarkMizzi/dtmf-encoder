@@ -36,8 +36,12 @@ void display_menu_options() {
 void menu_prompt(const char *prompt, ...) {
   va_list args;
 	
+	va_start(args, prompt);
+	
 	memset(lcd_string, 0, LCD_CHARS);
-	sprintf(lcd_string, prompt, args);
+	vsprintf(lcd_string, prompt, args);
+	
+	va_end(args);
 	
 	lcd_set_cursor(0, 0);
 	lcd_print(lcd_string);
