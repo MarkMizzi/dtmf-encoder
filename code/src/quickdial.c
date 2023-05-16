@@ -7,6 +7,7 @@
 #include "lpc_eeprom.h"
 #include "delay.h"
 #include "tone.h"
+#include <string.h>
 
 enum NewProfileStage {
 	PickProfile = 0,
@@ -49,10 +50,12 @@ void load_profile(int symbol){
 		lcd_clear();
 		settings = curr_profile.settings;
 		tone_init();
+				
 		for (i = 0; i < curr_profile.length; i++){
 			tone_play_or_enqueue(ROW(curr_profile.profile_characters[i]), COL(curr_profile.profile_characters[i]));
 		}
-	} else{
+		
+	} else {
 		lcd_print("LOADING FAILED");
 		delay_ms(2000);
 		boot_mode_init();
@@ -199,7 +202,8 @@ void set_setting_input(int row, int col) {
 					keypad_set_read_callback(set_characters);
 					stage = 0;
 					break;
-		}
+			}
+			break;
 		
 		case SYMBOL_STAR:
 			setting_val = 0;
@@ -228,6 +232,8 @@ void set_characters(int row, int col){
 		i = 0;
 		checksum = 0;
 
+		lcd_set_cursor_visibile(0);
+		memset((void *)&curr_profile, 0, sizeof(Profile));
 		boot_mode_init();
 	}
 }
