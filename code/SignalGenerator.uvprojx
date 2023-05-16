@@ -314,7 +314,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>1</Optim>
+            <Optim>4</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>0</OneElfS>
@@ -499,11 +499,6 @@
               <FileType>1</FileType>
               <FilePath>.\drivers\lpc_eeprom.c</FilePath>
             </File>
-            <File>
-              <FileName>lpc_types.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\drivers\lpc_types.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -588,6 +583,16 @@
               <FileName>menu.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\menu.h</FilePath>
+            </File>
+            <File>
+              <FileName>quickdial.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\quickdial.c</FilePath>
+            </File>
+            <File>
+              <FileName>quickdial.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\quickdial.h</FilePath>
             </File>
           </Files>
         </Group>

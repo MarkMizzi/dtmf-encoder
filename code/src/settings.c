@@ -5,6 +5,7 @@
 #include "settings.h"
 #include "tone.h"
 #include "lpc_eeprom.h"
+#include "quickdial.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -29,6 +30,7 @@ void boot_menu_input(int row, int col){
 			break;
 				
 		case SYMBOL_2:
+			quickdial_init();
 			break;
 		
 		case SYMBOL_3:
