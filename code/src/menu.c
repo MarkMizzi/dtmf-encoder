@@ -5,23 +5,23 @@
 #include <stdio.h>
 #include <string.h>
 
-/** String used to display menu options to the user.
+/** \brief String used to display menu options to the user.
  * 
  * Used in menus that process keypad input from the user.
  */
 #define MENU_OPTIONS "*:CLR   #:OK"
 
-/** Number of characters in a single line of the LCD screen.
+/** \brief Number of characters in a single line of the LCD screen.
  */
 #define LCD_CHARS 16
 
-/** Buffer used to temporarily hold content for a single line of the LCD screen.
+/** \brief Buffer used to temporarily hold content for a single line of the LCD screen.
  *
  * This is useful when, for example, we need to use sprintf().
  */
 char lcd_string[LCD_CHARS] = {0};
 
-/** Length of the currently displayed prompt. 
+/** \brief Length of the currently displayed prompt. 
  *
  * This is set by menu_prompt(), and is used by clear_user_input() to 
  * return the cursor to its original position before user input.

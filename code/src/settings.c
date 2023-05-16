@@ -96,6 +96,7 @@ void set_inter_symbol_spacing_menu_input(int row, int col) {
 			}
 			inter_symbol_spacing = 0;
 			
+			lcd_set_cursor_visibile(0);
 			boot_mode_init();
 			break;
 		
@@ -140,6 +141,7 @@ void set_symbol_length_menu_input(int row, int col) {
 			}
 			symbol_length = 0;
 			
+			lcd_set_cursor_visibile(0);
 			boot_mode_init();
 			break;
 		
@@ -184,6 +186,7 @@ void set_lut_logsize_menu_input(int row, int col) {
 			}
 			lut_logsize = 0;
 			
+			lcd_set_cursor_visibile(0);
 			boot_mode_init();
 			break;
 		
