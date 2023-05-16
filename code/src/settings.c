@@ -224,7 +224,7 @@ void check_settings(Settings *settings) {
 
 void load_settings() {
 	Settings loaded;
-	EEPROM_Read(SETTINGS_PAGE, SETTINGS_OFFSET, (void*)&loaded, MODE_16_BIT, sizeof(Settings) >> 1);
+	EEPROM_Read(SETTINGS_OFFSET, SETTINGS_PAGE, (void*)&loaded, MODE_16_BIT, sizeof(Settings) >> 1);
 	
 	// verify validity of settings
 	check_settings(&loaded);
@@ -234,6 +234,6 @@ void load_settings() {
 
 void store_settings() {
 	settings.checksum = SETTINGS_CHECKSUM(settings);
-	EEPROM_Write(SETTINGS_PAGE, SETTINGS_OFFSET, (void*)&settings, MODE_16_BIT, sizeof(Settings) >> 1);
+	EEPROM_Write(SETTINGS_OFFSET, SETTINGS_PAGE, (void*)&settings, MODE_16_BIT, sizeof(Settings) >> 1);
 }
 

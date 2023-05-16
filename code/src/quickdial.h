@@ -8,6 +8,7 @@
 #include "dtmf_symbols.h"
 #include "lpc_types.h"
 
+#define MIN_PROFILE_LENGTH 1
 #define MAX_PROFILE_LENGTH 32
 
 typedef struct Profile {

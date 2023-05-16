@@ -8,6 +8,14 @@
 #include "delay.h"
 #include "tone.h"
 
+enum NewProfileStage {
+	PickProfile = 0,
+	SetISS = 1,
+	SetSymbolLength = 2,
+	SetQuality = 3,
+	SetProfileLength = 4,
+};
+
 static int stage = 0;
 static int profile_num;
 static Profile curr_profile;
@@ -18,20 +26,26 @@ int checksum_check(Profile profile);
 
 #define SYMBOL_TO_NUM(SYMBOL) \
 	((int) symbol_chars[SYMBOL]) - '0'
+		
+#define PROFILE_PAGE(PROFILE_NUM) \
+	(SETTINGS_PAGE + (PROFILE_NUM) + 1)
+	
+#define PROFILE_OFFSET 0
 
-void load_profile(int x){
+void load_profile(int symbol){
 	int i;
-	x = SYMBOL_TO_NUM(x);
-	EEPROM_Read(SETTINGS_PAGE + x + 1, SETTINGS_OFFSET, (void*)&curr_profile, MODE_16_BIT, sizeof(Profile) >> 1);
+	int profile_num = SYMBOL_TO_NUM(symbol);
+	EEPROM_Read(PROFILE_OFFSET, PROFILE_PAGE(profile_num), (void*)&curr_profile, MODE_16_BIT, sizeof(Profile) >> 1);
 	
 	if (checksum_check(curr_profile) == curr_profile.checksum &&
-		curr_profile.length >= 0 &&
-		curr_profile.settings.lut_logsize >= MIN_LUT_LOGSIZE &&
-		curr_profile.settings.lut_logsize <= MAX_LUT_LOGSIZE &&
-		curr_profile.settings.symbol_length >= MIN_SYMBOL_LENGTH_MS &&
-		curr_profile.settings.symbol_length <= MIN_SYMBOL_LENGTH_MS &&
-		curr_profile.settings.inter_symbol_spacing >= MIN_INTER_SYMBOL_SPACING_MS &&
-		curr_profile.settings.inter_symbol_spacing <= MAX_INTER_SYMBOL_SPACING_MS){
+		  curr_profile.length >= MIN_PROFILE_LENGTH &&
+		  curr_profile.length <= MAX_PROFILE_LENGTH &&
+		  curr_profile.settings.lut_logsize >= MIN_LUT_LOGSIZE &&
+		  curr_profile.settings.lut_logsize <= MAX_LUT_LOGSIZE &&
+		  curr_profile.settings.symbol_length >= MIN_SYMBOL_LENGTH_MS &&
+		  curr_profile.settings.symbol_length <= MAX_SYMBOL_LENGTH_MS &&
+		  curr_profile.settings.inter_symbol_spacing >= MIN_INTER_SYMBOL_SPACING_MS &&
+		  curr_profile.settings.inter_symbol_spacing <= MAX_INTER_SYMBOL_SPACING_MS){
 		lcd_clear();
 		settings = curr_profile.settings;
 		tone_init();
@@ -99,10 +113,11 @@ void del_profile(int row, int col){
 		case SYMBOL_8:
 		case SYMBOL_9:
 			prof = SYMBOL_TO_NUM(SYMBOL(row, col));
-			EEPROM_Write(SETTINGS_PAGE+prof+1, SETTINGS_OFFSET, (void*)&zero_array, MODE_16_BIT, sizeof(Profile) >> 1);
+			EEPROM_Write(PROFILE_OFFSET, PROFILE_PAGE(prof), (void*)&zero_array, MODE_16_BIT, sizeof(Profile) >> 1);
 			boot_mode_init();
 	}
 }
+
 void set_setting_input(int row, int col) {
 	Settings settings;
 	static int setting_val = 0;
@@ -119,15 +134,13 @@ void set_setting_input(int row, int col) {
 		case SYMBOL_7:
 		case SYMBOL_8:
 		case SYMBOL_9:
-			if (stage == 0){
-					profile_num = ((int) symbol_chars[symbol]) - '0';
-					stage+=1;
+			if (stage == PickProfile){
+					profile_num = SYMBOL_TO_NUM(symbol);
+					stage++;
 					lcd_clear();
 					display_menu_options();
 					menu_prompt("ISS:");
-			}
-				
-			else{
+			} else {
 					lcd_put_char(symbol_chars[symbol]);
 					keypad_input_to_number(row, col, &setting_val);
 			}
@@ -136,49 +149,55 @@ void set_setting_input(int row, int col) {
 		
 		case SYMBOL_POUND:
 			switch (stage){
-				case 1:
+				case SetISS:
 					if (setting_val >= MIN_INTER_SYMBOL_SPACING_MS &&
-				  setting_val <= MAX_INTER_SYMBOL_SPACING_MS) {
-					curr_profile.settings.inter_symbol_spacing = setting_val;
+				      setting_val <= MAX_INTER_SYMBOL_SPACING_MS) {
+						curr_profile.settings.inter_symbol_spacing = setting_val;
 					}
+					
 					setting_val = 0;
-					stage+=1;
+					stage++;
 					lcd_clear();
 					display_menu_options();
 					menu_prompt("SYMLEN:");
 					break;
-				case 2:
+					
+				case SetSymbolLength:
 					if (setting_val >= MIN_SYMBOL_LENGTH_MS &&
 							setting_val <= MAX_SYMBOL_LENGTH_MS) {
 						curr_profile.settings.symbol_length = setting_val;
 					}
+					
 					setting_val = 0;
-					stage+=1;
+					stage++;
 					lcd_clear();
 					display_menu_options();
 					menu_prompt("QUALITY:");
 					break;
-				case 3:
-					if ( setting_val>= MIN_LUT_LOGSIZE &&
-				  setting_val <= MAX_LUT_LOGSIZE) {
+					
+				case SetQuality:
+					if (setting_val >= MIN_LUT_LOGSIZE &&
+				      setting_val <= MAX_LUT_LOGSIZE) {
 						curr_profile.settings.lut_logsize = setting_val;
 					}
+					
 					setting_val = 0;
-					stage+=1;
+					stage++;
 					lcd_clear();
 					display_menu_options();
 					menu_prompt("PROFILE LEN:");
 					break;
-				case 4:
-					if ( setting_val>= 1 &&
-				  setting_val <= 32) {
+					
+				case SetProfileLength:
+					if (setting_val >= MIN_PROFILE_LENGTH &&
+				      setting_val <= MAX_PROFILE_LENGTH) {
 						curr_profile.length = setting_val;
 					}
+					
 					setting_val = 0;
-					curr_profile.settings.checksum = SETTINGS_CHECKSUM(curr_profile.settings);
 					lcd_clear();
-					lcd_set_cursor(0,0);
 					keypad_set_read_callback(set_characters);
+					stage = 0;
 					break;
 		}
 		
@@ -191,27 +210,33 @@ void set_setting_input(int row, int col) {
 
 
 void set_characters(int row, int col){
-	static int i=1;
+	static int i = 0;
 	static int checksum = 0;
-	if (i < curr_profile.length){
-		lcd_put_char(symbol_chars[SYMBOL(row, col)]);
-		curr_profile.profile_characters[i-1]=SYMBOL(row, col);
-		checksum = checksum ^ SYMBOL(row, col);
-	}
-	else{
-		curr_profile.profile_characters[i-1]=SYMBOL(row, col);
-		checksum = checksum ^ SYMBOL(row, col);
-		checksum = checksum ^ curr_profile.settings.checksum ^ curr_profile.length;
-		EEPROM_Write(SETTINGS_PAGE+profile_num+1, SETTINGS_OFFSET, (void*)&curr_profile, MODE_16_BIT, sizeof(Profile) >> 1);
+	
+	lcd_put_char(symbol_chars[SYMBOL(row, col)]);
+	curr_profile.profile_characters[i] = SYMBOL(row, col);
+	checksum = checksum ^ SYMBOL(row, col);
+
+	if (i < curr_profile.length - 1){
+		++i;
+	} else {
+		checksum = checksum ^ curr_profile.length ^ SETTINGS_CHECKSUM(curr_profile.settings);
+		curr_profile.checksum = checksum;
+
+		EEPROM_Write(PROFILE_OFFSET, PROFILE_PAGE(profile_num), (void*)&curr_profile, MODE_16_BIT, sizeof(Profile) >> 1);
+
+		i = 0;
+		checksum = 0;
+
 		boot_mode_init();
 	}
 }
 
 int checksum_check(Profile profile){
 	int i;
-	uint16_t calc_checksum = profile.settings.inter_symbol_spacing ^ profile.settings.lut_logsize ^ profile.settings.symbol_length;
-	calc_checksum = calc_checksum ^ profile.length;
-	for (i = 0; i<profile.length; i++){
+	uint16_t calc_checksum = profile.length ^ SETTINGS_CHECKSUM(profile.settings);
+	
+	for (i = 0; i < profile.length; i++){
 		calc_checksum = calc_checksum ^ profile.profile_characters[i];
 	}
 	
