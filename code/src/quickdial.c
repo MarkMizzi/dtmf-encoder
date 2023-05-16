@@ -18,11 +18,11 @@ int checksum_check(Profile profile);
 
 void load_profile(int x){
 	int i;
-	x = ((int) symbol_chars[x])- '0';
-	EEPROM_Read(SETTINGS_PAGE+x+1, SETTINGS_OFFSET, (void*)&curr_profile, MODE_16_BIT, sizeof(Settings) >> 1);
+	x = ((int) symbol_chars[x]) - '0';
+	EEPROM_Read(SETTINGS_PAGE + x + 1, SETTINGS_OFFSET, (void*)&curr_profile, MODE_16_BIT, sizeof(Profile) >> 1);
 	
-	if (checksum_check(curr_profile)==curr_profile.checksum &&
-		curr_profile.length!=0 &&
+	if (checksum_check(curr_profile) == curr_profile.checksum &&
+		curr_profile.length >= 0 &&
 		curr_profile.settings.lut_logsize >= MIN_LUT_LOGSIZE &&
 		curr_profile.settings.lut_logsize <= MAX_LUT_LOGSIZE &&
 		curr_profile.settings.symbol_length >= MIN_SYMBOL_LENGTH_MS &&
@@ -32,13 +32,12 @@ void load_profile(int x){
 		lcd_clear();
 		settings = curr_profile.settings;
 		tone_init();
-		for (i=0; i < curr_profile.length; i++){
+		for (i = 0; i < curr_profile.length; i++){
 			tone_play_or_enqueue(ROW(curr_profile.profile_characters[i]), COL(curr_profile.profile_characters[i]));
 		}
-	}
-	else{
+	} else{
 		lcd_print("LOADING FAILED");
-		delay_ms(1000);
+		delay_ms(2000);
 		boot_mode_init();
 	}
 }
@@ -64,7 +63,6 @@ void quickdial_menu_input(int row, int col){
 		case SYMBOL_8:
 		case SYMBOL_9:
 			load_profile(SYMBOL(row, col));
-			
 			break;
 			
 		case SYMBOL_A:
