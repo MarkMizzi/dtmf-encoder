@@ -29,7 +29,6 @@ void boot_menu_input(int row, int col){
 			break;
 				
 		case SYMBOL_2:
-			enter_quickdial_mode();
 			break;
 		
 		case SYMBOL_3:
@@ -154,8 +153,8 @@ void set_symbol_length_menu_input(int row, int col) {
 void set_lut_logsize_mode_init(void) {
 	lcd_clear();
 	display_menu_options();
-	menu_prompt("QUALITY: %d", settings.symbol_length);
-	keypad_set_read_callback(set_symbol_length_menu_input);
+	menu_prompt("QUALITY: %d", settings.lut_logsize);
+	keypad_set_read_callback(set_lut_logsize_menu_input);
 }
 	
 void set_lut_logsize_menu_input(int row, int col) {
