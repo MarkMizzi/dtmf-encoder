@@ -233,7 +233,3 @@ void store_settings() {
 	EEPROM_Write(SETTINGS_PAGE, SETTINGS_OFFSET, (void*)&settings, MODE_16_BIT, sizeof(Settings) >> 1);
 }
 
-
-// TBD: REMOVE
-void enter_quickdial_mode(void) {}
-void quickdial_menu_input(int row, int col) {}

@@ -84,9 +84,6 @@ void set_symbol_length_menu_input(int row, int col);
 void set_lut_logsize_mode_init(void);
 void set_lut_logsize_menu_input(int row, int col);
 
-void enter_quickdial_mode(void);
-void quickdial_menu_input(int row, int col);
-
 /** \brief Perform bounds checking on fields of #settings, and set out-of-bounds fields to default values.
  *
  * \param settings Pointer to instance of #Settings to be bounds-checked.
