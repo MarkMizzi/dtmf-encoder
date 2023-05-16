@@ -8,16 +8,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#define CHECKSUM(SETTINGS) \
-	((SETTINGS).inter_symbol_spacing ^ (SETTINGS).symbol_length ^ (SETTINGS).sampling_rate_multiplier)
-
 #define LCD_CHAR 16
 
 Settings settings;
 
-char lcd_string[LCD_CHAR] = {0};
-
-void enter_boot_mode(void) {
+void boot_mode_init(void) {
 	load_settings();
 	lcd_clear();
 	lcd_print("1:KEYPD 2:QCKDL");
@@ -30,6 +25,7 @@ void boot_menu_input(int row, int col){
 	switch (SYMBOL(row, col)){
 		case SYMBOL_1:
 			lcd_clear();
+			tone_init();
 			keypad_set_read_callback(tone_play_or_enqueue);
 			break;
 				
@@ -38,13 +34,13 @@ void boot_menu_input(int row, int col){
 			break;
 		
 		case SYMBOL_3:
-			enter_settings_mode();
+			settings_mode_init();
 			break;
 	}
 				
 }
 
-void enter_settings_mode(void){
+void settings_mode_init(void){
 	lcd_clear();
 	lcd_print("1:ISS 2:SYMLEN");
 	lcd_set_cursor(0, 1);
@@ -52,20 +48,111 @@ void enter_settings_mode(void){
 	keypad_set_read_callback(settings_menu_input);
 }
 
+void settings_menu_input(int row, int col) {
+	switch (SYMBOL(row, col)) {
+		case SYMBOL_1:
+			set_inter_symbol_spacing_mode_init();
+			break;
+		
+		case SYMBOL_2:
+			set_symbol_length_mode_init();
+			break;
+		
+		case SYMBOL_3:
+			set_lut_logsize_mode_init();
+			break;
+	}
+}
+
+void set_inter_symbol_spacing_mode_init(void) {
+	lcd_clear();
+	display_menu_options();
+	menu_prompt("ISS: %d", settings.inter_symbol_spacing);
+	keypad_set_read_callback(set_inter_symbol_spacing_menu_input);
+}
+
+void set_inter_symbol_spacing_menu_input(int row, int col) {
+	static int inter_symbol_spacing = 0;
+
+	int symbol = SYMBOL(row, col);	
+	switch (symbol) {
+		case SYMBOL_0:
+		case SYMBOL_1:
+		case SYMBOL_2:
+		case SYMBOL_3:
+		case SYMBOL_4:
+		case SYMBOL_5:
+		case SYMBOL_6:
+		case SYMBOL_7:
+		case SYMBOL_8:
+		case SYMBOL_9:
+			lcd_put_char(symbol_chars[symbol]);
+			keypad_input_to_number(row, col, &inter_symbol_spacing);
+			break;
+		
+		case SYMBOL_POUND:
+			if (inter_symbol_spacing >= MIN_INTER_SYMBOL_SPACING_MS &&
+				  inter_symbol_spacing <= MAX_INTER_SYMBOL_SPACING_MS) {
+				settings.inter_symbol_spacing = inter_symbol_spacing;
+				store_settings();
+			}
+			inter_symbol_spacing = 0;
+			
+			boot_mode_init();
+			break;
+		
+		case SYMBOL_STAR:
+			inter_symbol_spacing = 0;
+			clear_user_input();
+			break;
+	}
+}
+
+void set_symbol_length_mode_init(void) {}
+void set_symbol_length_menu_input(int row, int col) {}
+
+void set_lut_logsize_mode_init(void) {}
+void set_lut_logsize_menu_input(int row, int col) {}
+
+void check_settings(Settings *settings) {
+	if (settings->checksum != SETTINGS_CHECKSUM(*settings)) {
+		settings->inter_symbol_spacing = DEFAULT_INTER_SYMBOL_SPACING_MS;
+		settings->lut_logsize = DEFAULT_LUT_LOGSIZE;
+		settings->symbol_length = DEFAULT_SYMBOL_LENGTH_MS;
+	}
+	
+	if (settings->inter_symbol_spacing < MIN_INTER_SYMBOL_SPACING_MS || 
+		  settings->inter_symbol_spacing > MAX_INTER_SYMBOL_SPACING_MS) {
+		settings->inter_symbol_spacing = DEFAULT_INTER_SYMBOL_SPACING_MS;
+	}
+	
+	if (settings->lut_logsize < MIN_LUT_LOGSIZE || 
+	    settings->lut_logsize > MAX_LUT_LOGSIZE) {
+		settings->lut_logsize = DEFAULT_LUT_LOGSIZE;
+	}
+			
+	if (settings->symbol_length < MIN_SYMBOL_LENGTH_MS ||
+		  settings->symbol_length > MIN_SYMBOL_LENGTH_MS) {
+		settings->symbol_length = DEFAULT_SYMBOL_LENGTH_MS;
+	}
+}
+
 void load_settings() {
 	Settings loaded;
 	EEPROM_Read(SETTINGS_PAGE, SETTINGS_OFFSET, (void*)&loaded, MODE_16_BIT, sizeof(Settings) >> 1);
 	
-	if (loaded.checksum != CHECKSUM(loaded)) {
-		loaded.inter_symbol_spacing = DEFAULT_INTER_SYMBOL_SPACING_MS;
-		loaded.sampling_rate_multiplier = DEFAULT_SAMPLING_RATE_MULTIPLIER;
-		loaded.symbol_length = DEFAULT_SYMBOL_LENGTH_MS;
-	}
+	// verify validity of settings
+	check_settings(&loaded);
 	
 	settings = loaded;
 }
 
 void store_settings() {
-	settings.checksum = CHECKSUM(settings);
+	settings.checksum = SETTINGS_CHECKSUM(settings);
 	EEPROM_Write(SETTINGS_PAGE, SETTINGS_OFFSET, (void*)&settings, MODE_16_BIT, sizeof(Settings) >> 1);
 }
+
+
+// TBD: REMOVE
+void enter_quickdial_mode(void) {}
+void quickdial_menu_input(int row, int col) {}
