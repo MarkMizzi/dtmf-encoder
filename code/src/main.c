@@ -7,10 +7,6 @@
 #include <lpc_eeprom.h>
 #include <platform.h>
 
-/** \brief Global variable containing system settings.
- */
-Settings current;
-
 /** \brief Index of power bit for Timer 1 peripheral in `LPC_SC->PCONP`.
  */
 #define PCTIM1 2
