@@ -55,6 +55,9 @@ void load_profile(int symbol){
 			tone_play_or_enqueue(ROW(curr_profile.profile_characters[i]), COL(curr_profile.profile_characters[i]));
 		}
 		
+		delay_ms(curr_profile.length * curr_profile.settings.symbol_length + (curr_profile.length-1)*curr_profile.settings.inter_symbol_spacing+500);
+		boot_mode_init();
+		
 	} else {
 		lcd_print("LOADING FAILED");
 		delay_ms(2000);
