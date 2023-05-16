@@ -16,9 +16,12 @@ void del_profile(int row, int col);
 void set_characters();
 int checksum_check(Profile profile);
 
+#define SYMBOL_TO_NUM(SYMBOL) \
+	((int) symbol_chars[SYMBOL]) - '0'
+
 void load_profile(int x){
 	int i;
-	x = ((int) symbol_chars[x]) - '0';
+	x = SYMBOL_TO_NUM(x);
 	EEPROM_Read(SETTINGS_PAGE + x + 1, SETTINGS_OFFSET, (void*)&curr_profile, MODE_16_BIT, sizeof(Profile) >> 1);
 	
 	if (checksum_check(curr_profile) == curr_profile.checksum &&
@@ -81,7 +84,7 @@ void quickdial_menu_input(int row, int col){
 	}
 }
 void del_profile(int row, int col){
-	int zero_array[sizeof(Profile)]={0};
+	int zero_array[sizeof(Profile)] = {0};
 	int prof;
 	
 	switch (SYMBOL(row, col)){
@@ -95,7 +98,7 @@ void del_profile(int row, int col){
 		case SYMBOL_7:
 		case SYMBOL_8:
 		case SYMBOL_9:
-			prof = ((int) symbol_chars[SYMBOL(row, col)])- '0';
+			prof = SYMBOL_TO_NUM(SYMBOL(row, col));
 			EEPROM_Write(SETTINGS_PAGE+prof+1, SETTINGS_OFFSET, (void*)&zero_array, MODE_16_BIT, sizeof(Profile) >> 1);
 			boot_mode_init();
 	}
@@ -117,7 +120,7 @@ void set_setting_input(int row, int col) {
 		case SYMBOL_8:
 		case SYMBOL_9:
 			if (stage == 0){
-					profile_num = ((int) symbol_chars[symbol])- '0';
+					profile_num = ((int) symbol_chars[symbol]) - '0';
 					stage+=1;
 					lcd_clear();
 					display_menu_options();
