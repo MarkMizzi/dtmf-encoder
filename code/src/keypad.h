@@ -6,7 +6,7 @@
 /**
  * \brief Macro determining the physical pin used for Column 0
  */
-#define P_COL_0 P1_11
+#define P_COL_0 P1_3
 /**
  * \brief Macro determining the physical pin used for Column 1
  */

@@ -217,7 +217,7 @@ void check_settings(Settings *settings) {
 	}
 			
 	if (settings->symbol_length < MIN_SYMBOL_LENGTH_MS ||
-		  settings->symbol_length > MIN_SYMBOL_LENGTH_MS) {
+		  settings->symbol_length > MAX_SYMBOL_LENGTH_MS) {
 		settings->symbol_length = DEFAULT_SYMBOL_LENGTH_MS;
 	}
 }
