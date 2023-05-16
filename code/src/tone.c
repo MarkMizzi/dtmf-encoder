@@ -270,7 +270,7 @@ __STATIC_INLINE void timer_callback_isr(unsigned base_freq, unsigned freq) {
 	sample_index += LUT_SIZE / SAMPLES_PER_PERIOD;
 	dac_set(sample);
 	
-	if (sample_index >= (base_freq * SAMPLES_PER_PERIOD * settings.symbol_length) / 1000U) {
+	if (sample_index >= (base_freq * LUT_SIZE * settings.symbol_length) / 1000U) {
 		timer_set_callback_delay(pop_and_dac_interrupt_enable, PERIOD_MS_TO_CYCLES(settings.inter_symbol_spacing));
 	}
 }
