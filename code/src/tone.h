@@ -7,11 +7,13 @@
 void tone_init();
 
 /**
- * \brief Attempts to start a new symbol's interrupt. If a symbol is already being played, the symbol is 
- * enqueued to a global queue. The symbol's corresponding character is outputted to the LCD.
+ * \brief Attempts to start an interrupt to generate a tone, and displays symbol on the LCD.
+ * 
+ * If a tone is already being generated, the symbol corresponding to the tone is 
+ * enqueued to a global queue. The symbol's corresponding character is displayed on the LCD.
  *
- * @param col The column of the symbol whose tone is to be generated.
- * @param row The row of the symbol whose tone is to be generated.
+ * \param col The column of the symbol whose tone is to be generated.
+ * \param row The row of the symbol whose tone is to be generated.
  */
 void tone_play_or_enqueue(int row, int col);
 

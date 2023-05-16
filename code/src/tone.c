@@ -14,15 +14,22 @@
 #include <stddef.h>
 #include <limits.h>
 
-/*! \brief Multiplier for the sampling rate. The size of #sine_table is the sampling rate multiplied by this number.
- * 
- * Having a #sine_table with more samples than necessary for the tone generation is beneficial for more accuracy when
- * computing the lower frequency component of the tone.
+/** \brief Size of #sine_table as computed from global system settings
  */
+#define LUT_SIZE (1 << settings.lut_logsize)
 
-/*! \brief Size of (number of samples in) #sine_table
-*/
-#define NUM_STEPS 128
+/** \brief Largest possible size of #sine_table.
+ */
+#define MAX_LUT_SIZE (1 << MAX_LUT_LOGSIZE)
+
+/** \brief Determines the sampling rate of generated tone.
+ *
+ * The sampling frequency of a generated tone is its highest frequency component multiplied by
+ * this constant. This constant was made as small as possible without the tone produced being
+ * audibly distorted. The lower bound is 2 (as determined by the Nyquist criterion), but this is too
+ * small to produce a clean tone.
+ */
+#define SAMPLES_PER_PERIOD 4
 
 /**
  * Macro function for computing the value of lower frequency sine wave component of a tone.
@@ -33,8 +40,8 @@
  * @param IDX The index of the sample being computed.
  */
 #define SIN(BASEFREQ, FREQ, IDX)                            \
-    ((sine_table[((FREQ) * (IDX) / (BASEFREQ)) & (NUM_STEPS-1)] +     \
-      sine_table[-(-(FREQ) * (IDX) / (BASEFREQ)) & (NUM_STEPS-1)]) >> \
+    ((sine_table[((FREQ) * (IDX) / (BASEFREQ)) & (LUT_SIZE-1)] +     \
+      sine_table[-(-(FREQ) * (IDX) / (BASEFREQ)) & (LUT_SIZE-1)]) >> \
      1)
 
 /**
@@ -45,7 +52,7 @@
  * @param IDX The index of the sample being computed.
  */
 #define SIN_ADD(F1, F2, IDX) \
-    ((sine_table[(IDX) & (NUM_STEPS-1)] + SIN((F1), (F2), (IDX))) >> 1)
+    ((sine_table[(IDX) & (LUT_SIZE-1)] + SIN((F1), (F2), (IDX))) >> 1)
 
 /** 
  * \brief A flag which keeps track of whether a DAC interrupt is enabled or not
@@ -125,15 +132,15 @@ static void dac_interrupt_disable(void);
  *
  * This is initialized at program start-up.
  */
-static int sine_table[NUM_STEPS];
+static int sine_table[MAX_LUT_SIZE];
 
 /**
  * \brief Generic function which contains the implementation of tone generation/output.
  * 
  * This function is specialized for each DTMF tone using TIMER_CALLBACK_ISR() macros.
  * 
- * @param base_freq the base frequency (the higher frequency)
- * @param freq the second frequency (the lower frequency)
+ * \param base_freq the base frequency (the higher frequency)
+ * \param freq the second frequency (the lower frequency)
  */
 static void timer_callback_isr(unsigned base_freq, unsigned freq);
 
@@ -155,8 +162,8 @@ void tone_init(void) {
  * 
  * This is used mainly to create the dispatch table.
  * 
- * @param F1 the base frequency (the higher frequency)
- * @param F2 the second frequency (the lower frequency)
+ * \param F1 the base frequency (the higher frequency)
+ * \param F2 the second frequency (the lower frequency)
  */
 #define TIMER_CALLBACK_ISR_NAME(F1, F2) \
 	timer_callback_isr_##F1##_##F2
@@ -164,8 +171,8 @@ void tone_init(void) {
 /**
  * \brief Macro used to declare the specialised timer interrupt for each DTMF tone.
  *
- * @param F1 the base frequency (the higher frequency)
- * @param F2 the second frequency (the lower frequency)
+ * \param F1 the base frequency (the higher frequency)
+ * \param F2 the second frequency (the lower frequency)
  */
 #define TIMER_CALLBACK_ISR(F1, F2) \
 	static void TIMER_CALLBACK_ISR_NAME(F1, F2)(void)
@@ -194,8 +201,8 @@ TIMER_CALLBACK_ISR(1633, 941); // D
 /**
  * \brief Macro used to define the specialised timer interrupt for each DTMF tone.
  *
- * @param F1 the base frequency (the higher frequency)
- * @param F2 the second frequency (the lower frequency)
+ * \param F1 the base frequency (the higher frequency)
+ * \param F2 the second frequency (the lower frequency)
  */
 #define TIMER_CALLBACK_ISR_DEF(F1, F2) \
 	TIMER_CALLBACK_ISR(F1, F2) {         \
@@ -223,8 +230,10 @@ TIMER_CALLBACK_ISR_DEF(1477, 941); // #
 TIMER_CALLBACK_ISR_DEF(1633, 941); // D
 	
 /**
-*A dispatch table of function pointers to specialised DTMF tone interrupts. The array elements correspond to their symbols, and are organised in the same structure as the keypad.
-*/
+ * \brief A dispatch table of function pointers to specialised DTMF tone interrupts. 
+ *
+ * The array elements correspond to their symbols, and are organised in the same structure as the keypad.
+ */
 static void (*dispatch_table[N_COLS][N_ROWS])(void) = {
 	{
 		TIMER_CALLBACK_ISR_NAME(1209, 697), // 1
@@ -252,22 +261,24 @@ static void (*dispatch_table[N_COLS][N_ROWS])(void) = {
 	}
 };
 
+/** \brief Array containing the higher frequency components of DTMF tones, ordered by column index.
+ */
 static unsigned base_freqs[N_COLS] = {1209, 1336, 1477, 1633};
 
 __STATIC_INLINE void timer_callback_isr(unsigned base_freq, unsigned freq) {
 	int sample = SIN_ADD(base_freq, freq, sample_index);
-	sample_index += settings.sampling_rate_multiplier;
+	sample_index += LUT_SIZE / SAMPLES_PER_PERIOD;
 	dac_set(sample);
 	
-	if (sample_index >= (base_freq * NUM_STEPS * settings.symbol_length) / 1000U) {
+	if (sample_index >= (base_freq * SAMPLES_PER_PERIOD * settings.symbol_length) / 1000U) {
 		timer_set_callback_delay(pop_and_dac_interrupt_enable, PERIOD_MS_TO_CYCLES(settings.inter_symbol_spacing));
 	}
 }
 
 static void sinewave_init(void) {
 	int n;
-	for (n = 0; n < (NUM_STEPS*settings.sampling_rate_multiplier); n++) {
-		sine_table[n] = (int)((DAC_MASK) * (1 + sin(n * 2 * PI / NUM_STEPS)) / 2);
+	for (n = 0; n < LUT_SIZE; n++) {
+		sine_table[n] = (int)((DAC_MASK) * (1 + sin(n * 2 * PI / LUT_SIZE)) / 2);
 	}
 }
 
@@ -276,7 +287,7 @@ static void dac_interrupt_enable_unsafe(int col, int row)
     // reset sample index.
     sample_index = 0;
 	
-    timer_set_callback(dispatch_table[row][col], FREQ_HZ_TO_CYCLES(base_freqs[col] * NUM_STEPS / settings.sampling_rate_multiplier));
+    timer_set_callback(dispatch_table[row][col], FREQ_HZ_TO_CYCLES(base_freqs[col] * SAMPLES_PER_PERIOD));
 }
 
 static void pop_and_dac_interrupt_enable(void)
@@ -321,12 +332,6 @@ static void dac_interrupt_disable(void)
     dac_interrupt_flag = false;
     timer_disable();
 }
-
-/**
-*First checks if the DAC is currently playing a tone. If it is, it plays a tone directly. If not it adds it to the queue.
-*@param row symbol's row on keypad
-*@param col symbol's column on keypad
-*/
 
 void tone_play_or_enqueue(int row, int col) {
 		int symbol = SYMBOL(row, col);

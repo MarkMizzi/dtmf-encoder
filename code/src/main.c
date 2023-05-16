@@ -30,23 +30,16 @@ void power_down_peripherals()
 }
 
 int main(void) {
+	power_down_peripherals();
 	
 	lcd_init();
 	lcd_clear();
 	EEPROM_Init();
 	__enable_irq();
 	
-	current.inter_symbol_spacing = DEFAULT_INTER_SYMBOL_SPACING_MS;
-	current.symbol_length = DEFAULT_SYMBOL_LENGTH_MS;
-	current.sampling_rate_multiplier = DEFAULT_SAMPLING_RATE_MULTIPLIER;
+	keypad_init();
 	
-	EEPROM_Write(0, 0, &current, MODE_16_BIT, sizeof(Settings)>>1);
-	
-	settings_init();
-	
-	keypad_init();	
-	
-	tone_init();
+	boot_mode_init();
 	
 	while (1) {
 		__WFI();

@@ -16,13 +16,14 @@ void keypad_set_read_callback(void (*callback)(int, int)) {
 /**
  * \brief Reads the keypad for any keypresses
  *
- *			  The columns are set high and then they are iteratively set to low.
- *				For every column set to low, the row pins logic values are read.
- *				Every time a low row pin is detected the read_keypad_callback() function is called.
- *				The appropriate column pins are set back to high after every row pin has been read.
+ * The columns are set high and then they are iteratively set to low.
+ * For every column set to low, the row pins logic values are read.
+ * Every time a low row pin is detected the read_keypad_callback() function is called.
+ * The appropriate column pins are set back to high after every row pin has been read.
  *
- *				Delays are added after setting the column pins to either low or high to account for debouncing.
- * @param int Bitmask used to verify that the interrupt comes from the set Interrupt pin
+ * Delays are added after setting the column pins to either low or high to account for debouncing.
+ *
+ * \param int Bitmask used to verify that the interrupt comes from the set Interrupt pin
  */
 static void read_keypad(int);
 
