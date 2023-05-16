@@ -159,51 +159,70 @@ void set_setting_input(int row, int col) {
 					if (setting_val >= MIN_INTER_SYMBOL_SPACING_MS &&
 				      setting_val <= MAX_INTER_SYMBOL_SPACING_MS) {
 						curr_profile.settings.inter_symbol_spacing = setting_val;
-					}
+						setting_val = 0;
+						
+						stage++;
+						
+						lcd_clear();
+						display_menu_options();
+						menu_prompt("SYMLEN:");
+					} else {
+						setting_val = 0;
+						clear_user_input();
+					}			
 					
-					setting_val = 0;
-					stage++;
-					lcd_clear();
-					display_menu_options();
-					menu_prompt("SYMLEN:");
 					break;
 					
 				case SetSymbolLength:
 					if (setting_val >= MIN_SYMBOL_LENGTH_MS &&
 							setting_val <= MAX_SYMBOL_LENGTH_MS) {
 						curr_profile.settings.symbol_length = setting_val;
+						setting_val = 0;
+					
+						stage++;
+						
+						lcd_clear();
+						display_menu_options();
+						menu_prompt("QUALITY:");
+					} else {
+						setting_val = 0;
+						clear_user_input();
 					}
 					
-					setting_val = 0;
-					stage++;
-					lcd_clear();
-					display_menu_options();
-					menu_prompt("QUALITY:");
 					break;
 					
 				case SetQuality:
 					if (setting_val >= MIN_LUT_LOGSIZE &&
 				      setting_val <= MAX_LUT_LOGSIZE) {
 						curr_profile.settings.lut_logsize = setting_val;
+						setting_val = 0;
+					
+						stage++;
+					
+						lcd_clear();
+						display_menu_options();
+						menu_prompt("PROFILE LEN:");
+					} else {
+						setting_val = 0;
+						clear_user_input();
 					}
 					
-					setting_val = 0;
-					stage++;
-					lcd_clear();
-					display_menu_options();
-					menu_prompt("PROFILE LEN:");
 					break;
 					
 				case SetProfileLength:
 					if (setting_val >= MIN_PROFILE_LENGTH &&
 				      setting_val <= MAX_PROFILE_LENGTH) {
 						curr_profile.length = setting_val;
+						setting_val = 0;
+						
+						lcd_clear();
+						keypad_set_read_callback(set_characters);
+						stage = 0;
+					} else {
+						setting_val = 0;
+						clear_user_input();
 					}
 					
-					setting_val = 0;
-					lcd_clear();
-					keypad_set_read_callback(set_characters);
-					stage = 0;
 					break;
 			}
 			break;
