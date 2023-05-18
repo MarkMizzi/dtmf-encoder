@@ -1,5 +1,4 @@
 #include "tone.h"
-#include "delay.h"
 #include "dtmf_symbols.h"
 #include "queue.h"
 #include "lcd.h"
