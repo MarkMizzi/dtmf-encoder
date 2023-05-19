@@ -148,7 +148,7 @@
    \begin{figure*}
       \centering
       \includegraphics[width=0.8\textwidth]{circuit_schematic}
-      \caption{Circuit schematic for the DTMF encoding system.}~\label{fig:circuit_schematic}
+      \caption{Circuit schematic for the DTMF encoding system.}~\label{fig:circuit-schematic}
    \end{figure*}
 
    Section \ref{system-design} describes the design of the DTMF encoding system. The system's architecture and separation of concerns is described in subsection \ref{system-arch}. Subsection \ref{dac} describes the implementation of DTMF tone generation. Subsection \ref{keypad} discusses how keypad input is handled. Finally, subsection \ref{settings-quickdial} describes how settings and quickdial are implemented, including the use of EEPROM as a persistent storage medium.
@@ -359,7 +359,7 @@ The DAC output changes discontinuously when it is updated. This imparts jagged e
 
 In addition, the bouncing from keypad presses can cause small, but audible low frequency noise artifacts in the audio output of the system. This can also be mitigated by using a simple high pass filter.
 
-Both sources of noise were significantly reduced in the final system through the use of a bandpass filter, which only lets through frequencies in a narrow range around the DTMF tone frequencies. This circuit processes the output from the DAC and its output is fed into a simple analog audio amplifier, and its details are shown in Figure~\ref{fig:circuit-schematic}
+Both sources of noise were significantly reduced in the final system through the use of a bandpass filter, which only lets through frequencies in a narrow range around the DTMF tone frequencies. This circuit processes the output from the DAC and its output is fed into a simple analog audio amplifier, and its details are shown in Figure~\ref{fig:circuit-schematic}.
 
 \subsection{Keypad input} \label{keypad}
 
