@@ -413,7 +413,13 @@ An RC lowpass filter works as a debouncing circuit because bouncing can be inter
 
 \subsubsection{Using the EEPROM}
 
-The use of EEPROM involves 
+Our system makes use of EEPROM by writing the bytes of \verb!Settings! or \verb!Profile! structs directly to it. This simple serialization strategy requires that these structs contain only flat fields (no pointers). System settings, and the 10 quickdial profiles are each written to their own, hardcoded region in the EEPROM.
+
+Data read from and written to EEPROM can be corrupted. In order to detect corruption, the structs stored to EEPROM have a checksum field. This is set to a bitwise exclusive or of all other fields before storing the struct to EEPROM. When loading from EEPROM, the checksum is re-computed and checked against the stored version. Structs with corrupted checksums are discarded. In the case of settings, the defaults are used instead. In the case of loading a profile, the load simply fails.
+
+This lax approach to error handling is tolerated because the system is not expected to store invaluable information. Lost data, i.e. system settings or quickdial profiles, can be restored with minor inconvenience to the user.
+
+In order to deal with the unlikely possibility that a struct is corrupted without invalidating the checksum, or to deal with cases where the checksum is valid while the data is not\footnote{This occurs, for example, when booting the system after the EEPROM has been erased. The region containing system settings is zeroed out, so the checksum check will succeed ($0 \oplus 0 = 0$), but the data is invalid.}, the system also checks that values for any settings (even those embedded in a quickdial profile) are in a valid range before loading them. When loading system settings, invalid fields are set to the default value. In the case of profiles, invalid fields in the embedded settings cause profile loading to fail.
 
 \section{Management} \label{schedule}
 \subsection{Final Deadline}
