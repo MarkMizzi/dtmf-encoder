@@ -126,7 +126,7 @@
    \begin{enumerate}
       \item intersymbol spacing, i.e. the delay between two consecutive tones being produced. Has maximum and minimum values of $0$ and $5000$ ms respectively. The default value is $200$ ms.
       \item Symbol length, i.e. the duration for which a single tone is produced. Has maximum and minimum values of $50$ and $5000$ ms respectively. The default value is $500$ ms.
-      \item Quality. This setting affects how faithful the tones produced by the system are to a DTMF tone proper. The trade-off involves efficiency, so a higher quality setting results in more power consumption (more CPU activity). Has maximum and minimum values of $4$ and $9$ respectively. The default value is $5$. The exact relationship between this quality value and the precision of the tone produced is discussed below.
+      \item Quality. This setting affects how faithful the tones produced by the system are to a DTMF tone proper. The trade-off involves efficiency, so a higher quality setting results in slighlty more power consumption (more CPU activity). Has maximum and minimum values of $4$ and $9$ respectively. The default value is $5$. The exact relationship between this quality value and the precision of the tone produced is discussed below.
    \end{enumerate}
 
    The user's selected values are validated, and persisted to EEPROM, so that a reboot of the system does not erase its configuration. Values which fall outside of a valid range are rejected, and the corresponding system parameter is set to a default value instead of the user's selection.
@@ -142,6 +142,14 @@
    \end{figure*}
 
    Excluding some initial setup, the system is entirely interrupt-based, and the CPU is inactive (in sleep mode) while no interrupt is being handled. This approach was found to result in a significant reduction of power consumption. TODO: Actual numbers.
+
+   The system also uses a number of external circuits which support its operation. These circuits will be discussed in due course below, however a full circuit schematic can be found in Figure~\ref{fig:circuit-schematic}
+
+   \begin{figure*}
+      \centering
+      \includegraphics[width=0.8\textwidth]{circuit_schematic}
+      \caption{Circuit schematic for the DTMF encoding system.}~\label{fig:circuit_schematic}
+   \end{figure*}
 
    Section \ref{system-design} describes the design of the DTMF encoding system. The system's architecture and separation of concerns is described in subsection \ref{system-arch}. Subsection \ref{dac} describes the implementation of DTMF tone generation. Subsection \ref{keypad} discusses how keypad input is handled. Finally, subsection \ref{settings-quickdial} describes how settings and quickdial are implemented, including the use of EEPROM as a persistent storage medium.
 
@@ -187,6 +195,8 @@ This function takes a DTMF symbol (in the form of a column and a row), and attem
 Given that the maximum symbol length and intersymbol spacing are $5$s each, a user can easily enter symbols faster than their tones are produced, and hence the failure of \verb!dac_interrupt_enable! is a common situation that the system has to deal with.
 
 On failure, our system enqueues the symbol passed to \verb!tone_play_or_enqueue! to a global queue, and this is later dequeued by the timer ISR generating the tone when it is done.
+
+\subsubsection{The queue data structure and thread-safety considerations}
 
 The salient point in this discussion is that the system uses a global queue which can be concurrently accessed by consumers and producers (due to interleaving of multiple ISRs and normal code).
 
@@ -274,23 +284,44 @@ This sequence of events will prevent a tone from being generated for the entered
 
 In order to prevent this data race, \verb!dac_interrupt_flag! is accessed using an atomic test-and-set in \verb!dac_interrupt_enable!. This is again implemented using a \verb!LDREX/STREX! pair.
 
+\subsubsection{Algorithm used for generating DTMF tone samples}
+
 DTMF tones consist of a composition of two sine waves whose frequency is determined by the row and column index of the corresponding DTMF symbol.
 
 The sine function is fairly computationally intensive, and hence our system precomputes samples for one period of a sine wave, storing them in a lookup table. The table is filled in each time the system enters manual mode, or loads a quickdial profile. The number of samples in the table is determined by the quality setting, which is log base $2$ of the size. This means that the size ranges from $16$ to $512$ samples. The exact relationship between the size of the lookup table and the quality of the tone produced will be discussed below.
 
 In what follows, $LUT$ represents the lookup table, $N$ its size, and $f_1$ and $f_2$ are the higher and lower frequencies of a DTMF tone.
 
-In order to make the most efficient use of the sine lookup table, the frequency of the timer interrupt is set to $4$ times the highest frequency of the DTMF tone being produced. This means that one of the sine waves can be produced simply by repeatedly getting the $0$th, $N/4$th, $N/2$th and $3N/4$th samples from the lookup table in each invocation of the ISR. 
+In order to make the most efficient use of the sine lookup table, the frequency of the timer interrupt is set to $4$ times the highest frequency of the DTMF tone being produced. This means that one of the sine waves can be produced simply by repeatedly getting the $0\textsuperscript{th}$, $N/4\textsubscript{th}$, $N/2\textsuperscript{th}$ and $3N/4\textsubscript{th}$ samples from the lookup table in each invocation of the ISR. 
 
 Note that since the DTMF tone signal has a frequency spectrum bandlimited by $f_1$, the Nyquist criterion specifies that the lower bound on the sampling frequency of the signal should be $2f_1$. In this case, we are using a sampling frequency of $4f_1$, which is fairly close. The relationship between sampling frequency and $f_1$ was determined empirically.
 
-Samples for the lower frequency sine component of the DTMF tone are determined using the following formula:
-$$ \frac{1}{2}\Bigg(LUT\bigg[\bigg\lfloor\frac{f_2i}{f_1}\bigg\rfloor \bmod N\bigg] + LUT\bigg[\bigg\lceil\frac{f_2i}{f_1}\bigg\rceil \bmod N\bigg]\Bigg) $$
+Samples for the lower frequency sine component of the DTMF tone are determined using the following equation:
+\begin{equation}
+   \label{eqn:low-f-dtmf-sine}
+   \frac{1}{2}\Bigg(LUT\bigg[\bigg\lfloor\frac{f_2i}{f_1}\bigg\rfloor \bmod N\bigg] + LUT\bigg[\bigg\lceil\frac{f_2i}{f_1}\bigg\rceil \bmod N\bigg]\Bigg)
+\end{equation}
 where $i$ is a global variable (called \verb!sample_index! in the code) which keeps track of the tone generation progress in between timer ISR invocations, and is incremented by $N/4$ each time the timer ISR is invoked.
 
-The formula above essentially finds the two samples that lie on either side of the sine value required, and then averages them. This is why increasing the size of the lookup table improves the quality of the tone produced; it improves the precision of the result computed by this average.
+Equation~\ref{eqn:low-f-dtmf-sine} essentially finds the two samples that lie on either side of the sine value required, and then averages them. This is why increasing the size of the lookup table improves the quality of the tone produced; it improves the precision of the result computed by this average.
 
-One note about implementation; regular integer division is the floor of the real result when the latter is positive, as in the above case. Ceiling division is accomplished using the following formula\cite{warren2012hacker}:
+We can quantify the error in approximating sine by Equation~\ref{eqn:low-f-dtmf-sine} to show that the quality setting has a tangible effect on the resolution of the tone produced. It is easy to see that the error is given by
+$$ E(x) = \bigg|\frac{1}{2}\bigg[\sin(x + \epsilon_1) + \sin(x - \epsilon_2)\bigg] - \sin(x)\bigg| $$
+where $\epsilon_1, \epsilon_2 \ge 0$ and $\epsilon_1 + \epsilon_2 = \frac{2\pi}{N}$
+
+Using trigonometric identities, this error can be expressed as
+\begin{equation*}
+E(x) = \frac{1}{2}\bigg|[\cos(\epsilon_1) + \cos(\epsilon_2) - 2]\sin(x) + [\sin(\epsilon_1) + \sin(\epsilon_2)]\cos(x)\bigg|
+\end{equation*}
+
+Since $\epsilon_1, \epsilon_2$ are fairly small, we can assume to first approximation that $\epsilon^n \approx 0$ for $n \ge 2$, and furthermore we can use Taylor series to approximate the error as
+$$ E(x) \approx \frac{1}{2}\bigg|[\epsilon_1 + \epsilon_2]\cos(x)\bigg| \le \frac{\pi}{N} $$
+
+For the minimum quality setting, $N = 16$, and hence the \textbf{total} relative error in the DTMF tone sample is bounded by $\frac{\pi}{2\times 16} \approx 0.098$ (we divide by $2$ because the lower frequency component contributes to half the amplitude of the DTMF tone). This corresponds to a maximum error equal to about $10\%$ the amplitude of the signal. Since the DAC has a resolution of $10$ bits, and $0.098 \times 1024 \approx 100 \gg 1$, this error easily manifests itself as audible noise. 
+
+For the maximum quality setting, $N = 512$, so the total relative error is bounded by $\frac{\pi}{2\times 512} \approx 0.0031$. This corresponds to a maximum error equal to about $0.3\%$ of the signal. The error noise is still theoretically audible in the DAC output, as $0.0031 \times 1024 \approx 3.14 > 1$, however it is far less than the minimum quality setting.
+
+One note about the implementation of Equation~\ref{eqn:low-f-dtmf-sine}; integer division in a computer is the floor of the real result when the latter is positive, as in the above case. Ceiling division is accomplished using the following formula\cite{warren2012hacker}:
 $$ \bigg\lceil \frac{x}{y} \bigg\rceil = -\bigg\lfloor -\frac{x}{y} \bigg\rfloor $$
 
 A number of optimizations were applied to the formula for the lower frequency sine component. Firstly, $N$ is fixed to be a power of $2$ (recall that the quality setting is $\log_2 N$), and hence the modulo operation can be replaced by a bitwise and, using the following formula that works when $y$ is a power of two:
@@ -298,59 +329,91 @@ $$ x \bmod y = x \,\,\&\,\, (y - 1) $$
 
 Secondly, the two divisions by $f_1$ are costly, but avoidable. By having one version of the timer ISR for each possible tone, the divisions become constant, allowing them to be optimized into a shift and a multiplication by the compiler\cite{warren2012hacker}. In order to implement this specialization cleanly, \verb!timer_callback_isr! is declared as \verb!STATIC_INLINE! (encouraging the compiler to inline its body), and macros are used to define specialized wrappers for it, for example \verb!timer_callback_isr_1209_697!. Function pointers to these specialized wrappers are stored in a 2-dimensional \verb!dispatch_table! variable, with the pointer at a particular 2-dimensional index pointing to the wrapper that produces the tone with the corresponding row and column index. This arrangement has additional benefits, namely the elimination of global state that would have to keep track of what tone is being produced in between invocations of the timer ISR.
 
+\subsubsection{Chaining of DAC interrupts}
+
 Earlier, it was mentioned that the timer ISR checks if tone generation has finished, and attempts to start generating a new tone if this is the case. This is done at the end of \verb!timer_callback_isr!, by comparing the value of \verb!sample_index! with $f_1 \times N \times \text{symbol length in seconds}$.
 
-If the latter check succeeds, the tone has been generated for the duration determined by the system's symbol length setting, and \verb!timer_callback_isr! calls \verb!timer_set_callback_delay!. This function takes a callback and a delay (in CPU cyles), and sets up the timer to call this callback after the given delay. Since the same timer peripheral is used for driving the DAC and for the delayed callback, this call simultaneuosly disables \verb!timer_callback_isr! from being invoked again. The callback in this case is \verb!pop_and_dac_interrupt_enable!.
+If the latter check succeeds, the tone has been generated for the duration determined by the system's symbol length setting, and \verb!timer_callback_isr! calls \verb!timer_set_callback_delay!. This function takes a callback and a delay (in CPU cyles), and sets up the timer to call this callback after the given delay. Since the same timer peripheral is used for driving the DAC and for the delayed callback, this call simultaneuosly disables \verb!timer_callback_isr! from being invoked again. The delay used is determined by the system setting for intersymbol spacing. The callback used in this case is \verb!pop_and_dac_interrupt_enable!.
 
 This function dequeues any existing symbol in the queue, and enables generation of its tone. Since it is only used by \verb!timer_callback_isr!, there is no need to check \verb!dac_interrupt_flag!, as it must be set when the function is called. Hence the function enables generation of the tone by calling \verb!dac_interrupt_enable_unsafe!, a version of \verb!dac_interrupt_enable! that skips checking or setting \verb!dac_interrupt_flag!. (Since \verb!dac_interrupt_enable_unsafe! is a subset of \verb!dac_interrupt_enable!'s functionality, the latter function wraps the former.) 
 
-%If the queue is empty, the function calls \verb!dac_interrupt_disable!, which resets \verb!dac_interrupt_flag! and disables the timer.
-%
-%The behaviour of each interrupt handler is shown in the control flow diagram in Figure \ref{fig:tone_interrupt_cfd}.
-%
-%\begin{figure*}
-%   \centering
-%   \includegraphics[width=0.92\textwidth]{tone_interrupt_cfd}
-%   \caption{Control flow diagram illustrating behaviour of tone-generating interrupt handlers}
-%   \label{fig:tone_interrupt_cfd}
-%\end{figure*}
-%
-%The \textbf{keypad driver} component provides an abstraction layer over the keypad. It must implement a single polling cycle (as a function) for use in other modules.
-%
-%In addition, it must implement a method that whilst running the polling cycle, performs the following actions immediately on detection of a key press:
-%\begin{enumerate}
-%   \item It immediately outputs the DTMF symbol detected to the LCD screen.
-%   \item It checks if there is a tone interrupt handler enabled. This can be done by atomic test and set on the global flag.
-%   \item If there is no tone interrupt handler enabled, it takes the symbol detected, and enables a tone-generating interrupt handler to generate its tone 
-%      (using a method in the DAC driver).
-%   \item If there is already a tone interrupt handler enabled, it pushes the DTMF symbol onto the output queue.
-%\end{enumerate}
-%This method will be used in normal mode to process key presses.
-%
-%The \textbf{persistent storage driver} provides an abstraction layer over the flash memory. It provides functions to serialize and deserialize the C structs 
-%which need to be stored into a byte stream, and allows for loading or storing serialized data from/to flash memory. The use of a wear leveling algorithm when storing data is essential to prevent the flash memory from degrading quickly\cite{silberschatz2018operating}.
+There is a sequence of events where this implementation suffers from a data race:
+\begin{enumerate}
+   \item \verb!tone_play_or_enqueue! is called due to a key press, or playback of a quickdial profile, while another tone has just finished being produced, and a delay is in place after which \verb!pop_and_dac_interrupt_enable! will be called.
+   \item The check of \verb!dac_interrupt_flag! (inside \verb!dac_interrupt_enable!) indicates that a tone is currently being generated, so \verb!dac_interrupt_enable! returns unsuccessfully.
+   \item At this point, the timer interrupt preempts execution. The queue happens to be empty (the symbol has not yet been enqueued), and so \verb!pop_and_dac_interrupt_enable! determines that no other tone needs to be generated.
+   \item Execution of the other thread resumes. Since \verb!dac_interrupt_enable! failed, the symbol is enqueued, and its tone is not produced. 
+\end{enumerate}
 
-%The \textbf{LED driver} provides methods to turn the indicator LED on or off.
-%
-%The \textbf{LCD driver} provides an abstraction layer over the LCD screen. It must implement methods which allow a DTMF symbol or a C string to be encoded and
-%displayed on the LCD.
-%
-%
-%There are several ways in which the polling cycle procedure that processes user input in normal mode (described above) can be executed.
-%
-%The simplest method is to run the procedure in application mode, with a set period of busy waiting in between invocations of the method to avoid spurious input.
-%(A human user will keep a key pressed for several clock cycles.)
-%
-%A more sophisticated option is to run the procedure as an interrupt handler for a timer interrupt, with the timer duration set to avoid spurious input. In this version, the processor has no application code to run and can be put in sleep mode in between interrupt invocations. While more efficient than the busy-waiting approach, this method can still invoke the interrupt handler when there is no input to process.
+This data race is very hard to avoid, as it manifests itself due to the preemption of code execution by a timer interrupt. 
 
-%A final, more efficient approach is to have a keypad-driven interrupt handler. In this approach, the columns of the keypad are set high, and pressing any key
-%triggers a pin interrupt for its row. The interrupt handler then invokes the polling method to find which key in that row was pressed and handle it.
-%
-%Each of these design choices is more sophisticated than the last, while re-using much of the same code. The plan is to implement each of these designs in turn. When one implementation has been successfully tested, the team will move on to implementing a more sophisticated design.
+For manual mode, one solution could be to set the priority level of GPIO interrupts and timer interrupts to be the same. This would prevent the timer interrupt from preempting execution of \verb!dac_interrupt_enable! inside the keypad ISR. However, it would not solve the issue in the case of quickdial mode.
+
+Another solution would be to disable timer interrupts in the critical section between checking \verb!dac_interrupt_flag!, and enqueuing the tone.
+
+Given that the critical section is short (less than 10 instructions), and is executed infrequently, the sequence of events described above is very unlikely. Due to the inelegance of possible solutions considered, it was chosen to avoid handling this improbable error situation robustly.
+
+\subsubsection{Smoothing using the bandpass filter}
+
+The DAC output changes discontinuously when it is updated. This imparts jagged edges to the produced signal, which translates to audible high frequency artifacts. Given the narrow frequency range of DTMF tones, a simple analog low pass filter can be used to effectively remove these artifacts, resulting in cleaner sound output. 
+
+In addition, the bouncing from keypad presses can cause small, but audible low frequency noise artifacts in the audio output of the system. This can also be mitigated by using a simple high pass filter.
+
+Both sources of noise were significantly reduced in the final system through the use of a bandpass filter, which only lets through frequencies in a narrow range around the DTMF tone frequencies. This circuit processes the output from the DAC and its output is fed into a simple analog audio amplifier, and its details are shown in Figure~\ref{fig:circuit-schematic}
 
 \subsection{Keypad input} \label{keypad}
 
+\subsubsection{Keypad circuit and polling loop}
+
+The keypad's button switches are organized in a grid as shown in the schematic of Figure~\ref{fig:circuit-schematic}. Each of the keypad's rows and columns are connected to GPIO pins on the microcontroller board.
+
+A polling loop is required to register key presses. Pseudocode for such a loop is shown in Listing~\ref{alg:polling-loop}. Column pins act as outputs initially set high, while the row pins are inputs set to $V_{CC}$ using a pull up resistor. Each column pin is then set low in turn. If any of the keypad switches are closed, current can flow from the switch's row pin to its column pin, resulting in a voltage drop across the row pin's pull up resistor, and setting the state of that pin to low. The key press can then be detected by simply checking each row pin to see if it is low. The delays after setting column pins ensure that the state of each pin is allowed to settle before reading the row pins.
+
+\begin{algorithm}
+   \caption{Pseudocode for the polling loop used to detect key presses}\label{alg:polling-loop}
+   \KwData{
+      \begin{itemize}
+         \item $P_{col, i}$ is the GPIO pin for the $i\textsuperscript{th}$ column.
+         \item $P_{row, i}$ is the GPIO pin for the $i\textsubscript{th}$ row.
+      \end{itemize}}
+      \For{$i \in \{1, 2, 3, 4\}$}{
+         \textbf{set} $P_{col, i}$ to $0$;\\
+         \textbf{delay} $100$ $\mu$s;\\
+         \For{$j \in \{1, 2, 3, 4\}$}{
+            \If{$P_{row, j} = 0$}{
+               Keypress detected at column $i$, row $j$.
+            }
+         }
+         \textbf{set} $P_{col, i}$ to $1$;\\
+         \textbf{delay} $100$ $\mu$s;
+      }
+\end{algorithm}
+
+In our code, the polling loop is encapsulated in a function \verb!read_keypad!, which is triggered on a pin interrupt as described below. The function also contains some logic for disabling pin interrupts on the keypad while the polling loop is being executed, and re-enabling them afterwards. In addition, on detecting a key press, this function calls the callback indicated by a global function pointer \verb!read_keypad_callback!, which takes as parameters the row and column of the key. This allows the keypad code to be customized for use in various settings, by simply changing the value of this pointer (using an additional function \verb!keypad_set_read_callback!).
+
+\subsubsection{Keypad interrupts}
+
+Keypad input is detected using GPIO interrupts. By setting all of the column pins low, and configuring all of the rows as inputs pulled up to $V_{CC}$, a key press will manifest as a falling edge at the row pin of the key (as current can flow from the row to the column pin, and there is a voltage drop across the pull up resistor). By setting a GPIO interrupt to trigger on such a falling edge, key presses can be detected and handled using interrupts.
+
+Due to limitations of the board used, at most two GPIO pins can be used to trigger interrupts on a falling edge. For this reason, an AND gate was used to combine the state of all of the row pins, feeding the output to a single, interrupt pin that triggers on a falling edge. This setup is shown in Figure~\ref{fig:circuit-schematic}. It is easy to see using boolean logic that such a setup will cause a falling edge at the interrupt pin whenever there is a falling edge at one or more row pins. Hence an interrupt will trigger whenever one or more keys on the keypad is pressed.
+
+Note that while this interrupt scheme can detect the press of one or more keys, it cannot determine which key was actually pressed. This responsibility is delegated to the polling loop in the ISR (which is the \verb!read_keypad! function described above). A basic assumption of this scheme is that a human user will press the key for a longer duration of time than it takes for the interrupt to be detected and handled.
+
+\subsubsection{Debouncing}
+
+Digital inputs can suffer from a phenomenom called bouncing, where sudden changes in the physical state of the attached circuit (e.g. current flow after closing a switch) cause voltage fluctuations, which in turn causes the state of the digital input to bounce between high and low before settling on a stable value. 
+
+In the case of the polling loop, setting the state of column pins in software can cause bouncing, however this is dealt with by introducing a small delay after each change in an output pin, as discussed above.
+
+Bouncing at the interrupt pin after a keypad switch is pressed is more problematic, however, as it can cause several transient falling edges, resulting in multiple interrupts being registered. Since there is no obvious way to deal with this in software, a hardware debouncing circuit was implemented and attached to the interrupt pin. This circuit is shown in Figure~\ref{fig:circuit-schematic}, and is effectively a simple RC lowpass filter. The RC values determine the frequency of bouncing which the filter can remove, and were determined empirically for the keypad used.
+
+An RC lowpass filter works as a debouncing circuit because bouncing can be interpreted as high frequency noise added to a reverse unit step function (the falling edge). Unfortunately, the falling edge contains high frequency components which are also filtered out by the circuit, and so the filter effectively smooths the transition from high to low. If the RC values are chosen carelessly, the output of the switch is smoothed to the extent that an interrupt will not trigger when the key is pressed, or the delay between pressing a key and the polling loop that detects that key makes the system appear unresponsive, or results in lost key presses (as mentioned above).
+
 \subsection{Settings and Quickdial} \label{settings-quickdial}
+
+\subsubsection{Using the EEPROM}
+
+The use of EEPROM involves 
 
 \section{Management} \label{schedule}
 \subsection{Final Deadline}
@@ -392,8 +455,8 @@ When considering the inter-dependencies of the tasks listed above, there is a di
 
 \section{Closure}
 
-In conclusion, this document describes the design of an efficient and performant system implementing DTMF encoding. The system's software has been split up
-into several modules showing good separation of concerns. Although not discussed here, a highly efficient algorithm has been derived for use in tone generation.
+In conclusion, this document describes the design of an efficient and robust system implementing DTMF encoding, as well as a number of auxiliary features. The system's software has been split up
+into modules, showing good separation of concerns. Special considerations were made to ensure thread safety of the system, and an efficient algorithm was used to generate DTMF tone samples. The circuit provided in the handbook was augmented to improve the quality of the system's output. 
 
 \bibliographystyle{ieeetr}
 \bibliography{references}
