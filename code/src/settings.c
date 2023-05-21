@@ -24,6 +24,7 @@ void boot_mode_init(void) {
 void boot_menu_input(int row, int col){
 	switch (SYMBOL(row, col)){
 		case SYMBOL_1:
+			load_settings();
 			lcd_clear();
 			tone_init();
 			keypad_set_read_callback(tone_play_or_enqueue);
