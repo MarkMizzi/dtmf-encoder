@@ -126,7 +126,7 @@
    \begin{enumerate}
       \item Intersymbol spacing, i.e. the minimum delay between two consecutive tones being produced. This has maximum and minimum values of $0$ and $5000$ ms respectively, with a default of $200$ ms.
       \item Symbol length, i.e. the duration for which a single tone is produced. This has maximum and minimum values of $50$ and $5000$ ms respectively. The default value is $500$ ms.
-      \item Quality. This setting affects the (amplitude) resolution of the tones produced. The trade-off involves efficiency; a higher quality setting results in slightly more power consumption (more CPU activity). This has maximum and minimum values of $4$ and $9$ respectively. The default value is $5$. The exact relationship between this quality value and the resolution of the tone produced is discussed below.
+      \item Quality. This setting affects the sample resolution of the tones produced. The trade-off involves efficiency; a higher quality setting results in slightly more power consumption (more CPU activity). This has maximum and minimum values of $4$ and $9$ respectively. The default value is $5$. The exact relationship between this quality value and the resolution of the tone produced is discussed below.
    \end{enumerate}
 
    The user's selected values are validated and persisted to EEPROM, so that a reboot of the system does not erase the configuration. Values which fall outside of the valid range are ignored.
@@ -141,7 +141,7 @@
       \caption{Flow chart showing system interface. Grey boxes represent the contents of the LCD screen as displayed to the user. Some system actions, such as clearing/displaying user input are omitted for brevity. Keypad input which is ignored by the system is also omitted.}~\label{fig:system-interface}
    \end{figure*}
 
-   Excluding some initial setup, the system is entirely interrupt-based, and the CPU is put in sleep mode (using the \href{https://developer.arm.com/documentation/dui0473/m/arm-and-thumb-instructions/wfi}{\Verb!WFI!} instruction) while inactive. This approach was found to result in a significant reduction of power consumption when compared to busy waiting in the \verb!main! loop. The interrupt based system has an average idle current draw of $120$ mA (measured over $1$ minute), whereas the same system using busy waiting has an average idle current draw of $170$ mA (measured over the same time period).
+   Excluding some initial setup, the system is entirely interrupt-based, and the CPU is put in sleep mode (using the \href{https://developer.arm.com/documentation/dui0473/m/arm-and-thumb-instructions/wfi}{\Verb!WFI!} instruction) while inactive. This approach was found to result in a significant reduction of power consumption when compared to busy waiting in the \verb!main! loop. The interrupt based system has an average idle current draw of $127$ mA, whereas the same system using busy waiting has an average idle current draw of $160$ mA. By powering down unused peripherals when the system is rebooted, the current draw was further reduced to $120$ mA\footnote{All values were computed by measuring the time taken (in seconds) for the system to reach $1$ mAh of charge consumption, and dividing by $3600$. Note that the measured values do not include the current drawn by the auxiliary audio circuit.}
 
    The system also uses a number of external circuits which support its operation. These circuits will be discussed in due course, however a full circuit schematic can be found in Figure~\ref{fig:circuit-schematic}.
 
@@ -424,7 +424,7 @@ Note that while this interrupt scheme can detect the press of one or more keys, 
 
 \subsubsection{Debouncing}
 
-Digital inputs can suffer from a phenomenom called bouncing, where sudden changes in the physical state of the attached circuit (e.g. current flow after closing a switch) cause voltage fluctuations, which in turn causes the state of the digital input to bounce between high and low before settling on a stable value. 
+Digital inputs can suffer from a phenomenom called bouncing, where sudden changes in the physical state of the attached circuit cause voltage fluctuations, which in turn causes the state of the digital input to bounce between high and low before settling on a stable value. A push button switch such as the one on the keypad used is prone to producing bouncing due to its spring loaded mechanical action.
 
 In the case of the polling loop, setting the state of column pins in software can cause bouncing, however this is dealt with by introducing a small delay after each change in an output pin, as discussed above.
 
@@ -466,7 +466,7 @@ Profiles are assigned by the user to keys $0$-$9$, allowing for a maximum of $10
 
 Attempting to load a non-existent or corrupted profile prompts a ``\verb!Loading failed!'' message to the user, and returns them to the boot menu. 
 
-Loading an existing, valid profile applies the profile's settings to the system (by assigning to the global \verb!settings! variable), plays back the profile, and then returns the user to the boot menu. 
+Loading an existing, valid profile applies the profile's settings to the system (by assigning to the global \verb!settings! variable), plays back the profile, and then returns the user to the boot menu. The previous system settings are restored after playing the profile.
 
 Playback uses the same \verb!tone_play_or_enqueue! function as manual mode. Since this is interrupt based, busy waiting is used in normal mode to ensure that the playback has finished before returning the user to boot mode. The required delay is calculated from the profile length and symbol length/intersymbol spacing settings of the profile. A $500$ ms overhead is added to ensure that playback finishes before the delay expires.
 
@@ -530,8 +530,24 @@ When considering the inter-dependencies of the tasks listed above, there is a di
 
 \section{Closure}
 
-In conclusion, this document describes the design of an efficient and robust system implementing DTMF encoding, as well as a number of auxiliary features. The system's software has been split up
-into modules, showing good separation of concerns. Special considerations were made to ensure thread safety of the system, and an efficient algorithm was used to generate DTMF tone samples. The circuit provided in the handbook was augmented to improve the quality of the system's output. 
+In conclusion, this document describes the design of an efficient and robust system implementing DTMF encoding, as well as a number of auxiliary features. 
+
+The system's software has been split up into modules, showing good separation of concerns. 
+
+In addition, as outlined above, the system was designed with robustness and performance in mind, and special considerations were made to ensure thread safety where needed.
+
+Pictures of the implemented system are shown in Figure~\ref{fig:system-pics}.
+
+\begin{figure*}
+   \centering
+   \begin{minipage}[b]{0.4\textwidth}
+     \includegraphics[width=\textwidth]{microcontroller_project2.jpg}
+   \end{minipage}
+   \begin{minipage}[b]{0.4\textwidth}
+     \includegraphics[width=\textwidth]{microcontroller_project.jpg}
+   \end{minipage}
+   \caption{Pictures of the final DTMF encoding system. The LCD is shown displaying the boot menu.}~\label{fig:system-pics}
+\end{figure*}
 
 \bibliographystyle{ieeetr}
 \bibliography{references}
