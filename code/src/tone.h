@@ -4,7 +4,7 @@
 /**
  * \brief Initialises the DAC and creates the Sin Wave LUT.
  */
-void tone_init();
+void tone_init(void);
 
 /**
  * \brief Attempts to start an interrupt to generate a tone, and displays symbol on the LCD.

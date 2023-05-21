@@ -148,10 +148,10 @@ void check_settings(Settings *settings);
  * is checked separately to see if it is out of bounds.
  * Any invalid fields are set to the default value for that field.
  */
-void load_settings();
+void load_settings(void);
 /** \brief Store settings to EEPROM. The checksum is computed before storing.
  */
-void store_settings();
+void store_settings(void);
 
 /** \brief Global variable containing current system settings.
  */

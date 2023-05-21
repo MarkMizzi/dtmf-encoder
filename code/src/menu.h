@@ -6,7 +6,7 @@
  * For such menus, the `*` key is used to clear user input, 
  * while the `#` key is used to submit user input.
  */
-void display_menu_options();
+void display_menu_options(void);
 
 /** \brief Displays a prompt for user input. Used in menus that process user input.
  *
@@ -19,7 +19,7 @@ void menu_prompt(const char *prompt, ...);
  *
  * The cursor is reset to its position before any user input.
  */
-void clear_user_input();
+void clear_user_input(void);
 
 /** \brief Processes a single digit input by the user, adding it to the value in #curr.
  *
