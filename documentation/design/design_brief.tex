@@ -101,7 +101,7 @@
    This document outlines the design of a DTMF encoding system based on a microcontroller board. The system described makes use of an LCD display to show the user what keys they have pressed as well as to display any messages or errors. An LED is used as an indicator of the system's state. An on-board DAC, in conjunction with an amplifier circuit and speaker are used to generate and amplify the DTMF tones.
    }
 
-\section{Introduction}
+\section{Introduction}~\label{introduction}
 
    Dual Tone Multi Frequency (DTMF for short) encoding is a technology used to communicate with other devices over a standard analogue telephone line \cite{sl:an218}. This is mainly used for automated switchboards for calls; however, this is also used in remote control systems, telephone banking, and other applications \cite{sl:an218}.
 
@@ -141,9 +141,9 @@
       \caption{Flow chart showing system interface. Grey boxes represent the contents of the LCD screen as displayed to the user. Some system actions, such as clearing/displaying user input are omitted for brevity. Keypad input which is ignored by the system is also omitted.}~\label{fig:system-interface}
    \end{figure*}
 
-   Excluding some initial setup, the system is entirely interrupt-based, and the CPU is inactive (in sleep mode) while no interrupt is being handled. This approach was found to result in a significant reduction of power consumption. TODO: Actual numbers.
+   Excluding some initial setup, the system is entirely interrupt-based, and the CPU is put in sleep mode (using the \verb!WFI! instruction) while inactive. This approach was found to result in a significant reduction of power consumption. The interrupt-based system has an average current draw of (TODO) (measured over (TODO) minutes of use), whereas the same system with a busy waiting loop in \verb!main! has an average current draw of (TODO) (measured over the same time period).
 
-   The system also uses a number of external circuits which support its operation. These circuits will be discussed in due course below, however a full circuit schematic can be found in Figure~\ref{fig:circuit-schematic}
+   The system also uses a number of external circuits which support its operation. These circuits will be discussed in due course below, however a full circuit schematic can be found in Figure~\ref{fig:circuit-schematic}.
 
    \begin{figure*}
       \centering
@@ -226,7 +226,7 @@ The thread safe queue operations were implemented using hardware synchronization
 
 When a load exclusive instruction is used, a hardware monitor tracks subsequent stores to a small block containing the loaded address using a tag. Once a single exclusive store to the block has been executed, the monitor prevents subsequent exclusive stores before another exclusive load is performed.\cite{armv7_m_architecture_manual}
 
-The use of these instructions required the queue to be implemented in ARM assembly (inline assembly is discouraged when using exclusive load/store instructions).
+The use of these instructions required the queue to be implemented in ARM assembly (inline assembly is discouraged when using exclusive load/store instructions\cite{compiler_migration_guide}).
 
 Pseudo-code for the two operations implemented is shown in Listing~\ref{alg:enqueue} and Listing~\ref{alg:check_dequeue} respectively. A line marked as \textbf{atomic}, or a section marked \textbf{critical-section} indicate code which is protected by \verb!LDREX!/\verb!STREX! guards. Note also that thread safety can be achieved simply by guarding access to a single, additional shared variable; the queue size. This is possible because there is only one producer and one consumer that concurrently access the queue, so it is impossible for the queue's head or tail index variables to be shared.
 
@@ -282,7 +282,7 @@ However, when \verb!dac_interrupt_enable! checks the global flag, the following 
 
 This sequence of events will prevent a tone from being generated for the entered symbol. Instead, it is enqueued, and its tone may be produced after the next entered symbol is processed.
 
-In order to prevent this data race, \verb!dac_interrupt_flag! is accessed using an atomic test-and-set in \verb!dac_interrupt_enable!. This is again implemented using a \verb!LDREX/STREX! pair.
+In order to prevent this data race, \verb!dac_interrupt_flag! is accessed using an atomic test-and-set in \verb!dac_interrupt_enable!. The compiler builtin \verb!__sync_lock_test_and_set! is used to implement this atomic test-and-set.
 
 \subsubsection{Algorithm used for generating DTMF tone samples}
 
@@ -411,13 +411,41 @@ An RC lowpass filter works as a debouncing circuit because bouncing can be inter
 
 \subsection{Settings and Quickdial} \label{settings-quickdial}
 
+\subsubsection{Settings mode}
+
+As mentioned above, the user can set system settings via a settings mode, which, as shown in Figure~\ref{fig:system-interface} can be accessed by pressing $2$ after booting the system. In this mode, the user can set the intersymbol spacing, symbol length, and quality used by the system.
+
+While entering the value for a system setting, the user can clear their input by pressing the * key.
+
+After entering a value for a particular setting, the user presses the \# key to submit their option. This redirects them to the boot menu. Valid user inputs are applied to the global variable \verb!settings! used by the system, and stored to EEPROM in a fixed location, for use when the system is rebooted. Invalid user inputs (ones which do not fall in the allowed range for that setting as specified in Section~\ref{introduction}) are silently rejected (not applied or stored).
+
+In the code, settings are represented by a \verb!Settings! struct containing all configurable fields, as well as a checksum for dealing with EEPROM corruption (see below).
+
+\subsubsection{Quickdial mode}
+
+In quickdial mode, the user can create, load and delete profiles. These are sequences of at most $32$ DTMF symbols, with their own, embedded settings for playback. Profiles are represented by a \verb!Profile! struct, which includes a \verb!Settings! field, a profile length, a \verb!char! array holding the profile's symbols, and a checksum for dealing with EEPROM corruption (see below).
+
+Profiles are assigned by the user to keys $0-9$, allowing for a maximum of $10$ saved profiles. When the user enters quickdial mode, they can load a profile by pressing keys $0-9$, create (or overwrite) a profile by pressing A, and delete a profile by pressing B, as shown in Figure~\ref{fig:system-interface}.
+
+Attempting to load a non-existent or corrupted profile prompts a ``\verb!Loading failed!'' message to the user, and returns them to the boot menu. 
+
+Loading an existing, valid profile applies the profile's settings to the system (by assigning to the global \verb!settings! variable), plays back the profile, and then returns the user to the boot menu. Playback uses the same \verb!tone_play_or_enqueue! function as manual mode. Since this is interrupt based, busy waiting (\verb!delay_ms!) is used in normal mode to ensure that the playback has finished before returning the user to boot mode. The required delay is calculated from the profile length, and symbol length/intersymbol spacing settings of the profile. A $500$ ms overhead is added to ensure that playback finishes before the delay expires.
+
+When the user creates a new profile, they are prompted to enter each of the fields in the \verb!Profile! struct in turn (excluding the checksum). If the user enters an invalid input for any of the settings or the profile length, their input is cleared, and they are prompted to enter a new value for the field. The user can also clear their input manually by pressing the * key.
+
+The value entered for profile length is used in the menu where the user enters symbols for the profile to determine when to stop registering new symbols. After successfully entering all the details of a profile, the latter is stored to EEPROM, and the user is redirected to the boot menu.
+
+Users can also delete their profiles. This works by zeroing out the region of EEPROM allocated to that profile.
+
 \subsubsection{Using the EEPROM}
 
 Our system makes use of EEPROM by writing the bytes of \verb!Settings! or \verb!Profile! structs directly to it. This simple serialization strategy requires that these structs contain only flat fields (no pointers). System settings, and the 10 quickdial profiles are each written to their own, hardcoded region in the EEPROM.
 
-Data read from and written to EEPROM can be corrupted. In order to detect corruption, the structs stored to EEPROM have a checksum field. This is set to a bitwise exclusive or of all other fields before storing the struct to EEPROM. When loading from EEPROM, the checksum is re-computed and checked against the stored version. Structs with corrupted checksums are discarded. In the case of settings, the defaults are used instead. In the case of loading a profile, the load simply fails.
+Data read from and written to EEPROM can be corrupted. In order to detect corruption, the structs stored to EEPROM have a checksum field. This is set to a bitwise exclusive or of all other fields before storing the struct to EEPROM. Note that in the case of \verb!Profile! structs, the checksum of the embedded \verb!Settings! struct is not included in the checksum for the \verb!Profile!, as this would cancel out the contribution to the checksum from the rest of the \verb!Settings! fields.
 
-This lax approach to error handling is tolerated because the system is not expected to store invaluable information. Lost data, i.e. system settings or quickdial profiles, can be restored with minor inconvenience to the user.
+When loading from EEPROM, the checksum is re-computed and checked against the stored version. Structs with corrupted checksums are discarded. In the case of settings, the defaults are used instead. In the case of loading a profile, the load simply fails.
+
+This lax approach to error handling is tolerated because the system is not expected to store valuable information. Lost data, i.e. system settings or quickdial profiles, can be restored with minor inconvenience to the user.
 
 In order to deal with the unlikely possibility that a struct is corrupted without invalidating the checksum, or to deal with cases where the checksum is valid while the data is not\footnote{This occurs, for example, when booting the system after the EEPROM has been erased. The region containing system settings is zeroed out, so the checksum check will succeed ($0 \oplus 0 = 0$), but the data is invalid.}, the system also checks that values for any settings (even those embedded in a quickdial profile) are in a valid range before loading them. When loading system settings, invalid fields are set to the default value. In the case of profiles, invalid fields in the embedded settings cause profile loading to fail.
 
