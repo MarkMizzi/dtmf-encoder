@@ -18,27 +18,27 @@ queue SPACE N*4
 	EXPORT check_and_dequeue
 
 enqueue PROC
-    PUSH {r4}
-    MOVW r4, #N_MOD_MASK ; r4 <- N mod mask
-    LDR r1, _queue_size  ; r1 <- queue_size
-L1
-    LDREX r2, [r1]       ; r2 <- *queue_size
-    ADD r2, r2, #1
-    AND r2, r2, r4       ; r2 <- (*queue_size + 1) % N
-    STREX r3, r2, [r1]   ; try committing changes ..
-    CMP r3, #0           ;   .. and restart if it fails
-    BNE L1               ;   ..
-    DMB
+    PUSH {r4, r5}
+    MOVW r5, #N_MOD_MASK ; r4 <- N mod mask
     LDR r1, _queue
     LDR r2, _queue_tail
     LDR r3, [r2]
     STR r0, [r1, r3]     ; queue[*queue_tail] <- r0
     ADD r3, r3, #4
-    LSL r4, r4, #2       ; r4 <- (N * 4) mod mask
-    ADD r4, r4, #3
+    LSL r4, r5, #2       ; r4 <- (N mod mask * 4)
+    ADD r4, r4, #3       ; lower 2 bits are 00, make them 11 to get mod mask for N * 4
     AND r3, r3, r4
     STR r3, [r2]         ; *queue_tail <- (*queue_tail + 4) % (N * 4)
-    POP {r4}
+    LDR r1, _queue_size  ; r1 <- queue_size
+L1
+    LDREX r2, [r1]       ; r2 <- *queue_size
+    ADD r2, r2, #1
+    AND r2, r2, r5       ; r2 <- (*queue_size + 1) % N
+    STREX r3, r2, [r1]   ; try committing changes ..
+    CMP r3, #0           ;   .. and restart if it fails
+    BNE L1               ;   ..
+    DMB
+	POP {r4, r5}
     BX lr
 	
 	ENDP
