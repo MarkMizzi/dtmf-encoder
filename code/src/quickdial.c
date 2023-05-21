@@ -11,8 +11,10 @@
 
 
 /**
-*\brief NewProfileStage Enumerated list to store each stage of creating a new profile
-*/
+ * \brief Enum representing stages in creating a new profile. 
+ * 
+ * Used by #set_setting_input to keep track of current stage while prompting the user for profile fields.
+ */
 enum NewProfileStage {
 	PickProfile = 0,
 	SetISS = 1,
@@ -22,30 +24,90 @@ enum NewProfileStage {
 };
 
 /**
-*stage Stores what current stage profile creation is in.
-*/
-static int stage = 0;
+ * \brief Stores the current stage which profile creation is in.
+ */
+static enum NewProfileStage stage = PickProfile;
+
 /**
-*profile_num Stores what profile is being created, loaded or deleted.
-*/
+ * \brief Stores what profile is being created or loaded.
+ */
 static int profile_num;
+
+/**
+ * \brief Used to hold data for a profile while it is being created or played back.
+ */
 static Profile curr_profile;
+
+/**
+ * \brief Loads a profile from the EEPROM, performs bounds checking and plays back the tone. 
+ *
+ * Once playback is over, the user is redirected back to boot menu.
+ * A busy waiting delay is used to ensure that the profile finishes playback before this occurs.
+ */
+void load_profile(int symbol);
+
+/**
+ * \brief Handles user input for setting fields of a new profile. 
+ *
+ * User input proceeds in stages, with one stage for each field of the new profile.
+ * Bounds checking is performed before proceeding to the next stage. If the user input is invalid, it is cleared, and
+ * they are prompted to enter a new value for the same field.
+ * 
+ * \param row Row of key press
+ * \param col Column of key press
+ */
 void set_setting_input(int row, int col);
+
+/**
+ * \brief Deletes a given profile by zeroing out the corresponding region in the EEPROM containing that profile.
+ *
+ * \param row Row of key press indicating profile to be deleted.
+ * \param col Column of key press indicating profile to be deleted.
+ */
 void del_profile(int row, int col);
-void set_characters();
+
+/**
+ * \brief Handles user input for setting the saved characters of a new profile.
+ *
+ * User input is registered until the number of entered characters is the same as the length indicated in #curr_profile
+ *
+ * \param row Row of key press
+ * \param col Column of key press
+ */
+void set_characters(int row, int col);
+
+/**
+ * \brief Calculates the checksum of a #Profile and compares it to its `checksum` field. 
+ *
+ * Used on loading a profile to ensure that the profile has not been corrupted.
+ *
+ * \param profile #Profile whose checksum is being verified.
+ */
 int checksum_check(Profile profile);
 
+/**
+ * \brief Converts a numeric DTMF symbol to its corresponding digit value.
+ *
+ * Using a non-numeric DTMF symbol with this macro returns an invalid result.
+ *
+ * \param SYMBOL Numeric DTMF symbol to be converted.
+ */
 #define SYMBOL_TO_NUM(SYMBOL) \
 	((int) symbol_chars[SYMBOL]) - '0'
-		
-#define PROFILE_PAGE(PROFILE_NUM) \
-	(SETTINGS_PAGE + (PROFILE_NUM) + 1)
-	
-#define PROFILE_OFFSET 0
 
 /**
-* \brief load_profile Loads a profile from the EEPROM, performs bounds checking queues the tones into the queue. Once done exits back to boot menu.
-*/
+ * \brief Gets the EEPROM page used to store a particular profile.
+ *
+ * \param PROFILE_NUM Number of profile whose page has been requested.
+ */	
+#define PROFILE_PAGE(PROFILE_NUM) \
+	(SETTINGS_PAGE + (PROFILE_NUM) + 1)
+
+/**
+ * \brief Gets the offset inside an EEPROM page where a profile is stored. This is the same for each profile.
+ */	
+#define PROFILE_OFFSET 0
+
 void load_profile(int symbol){
 	int i;
 	int profile_num = SYMBOL_TO_NUM(symbol);
@@ -78,9 +140,6 @@ void load_profile(int symbol){
 	}
 }
 
-/**
-* \brief quickdial_init Creates the initial menu for quickdial and sets the ISR callback appropriately.
-*/
 void quickdial_init(void){
 	lcd_clear();
 	lcd_print("A:NEW      B:DEL");
@@ -89,11 +148,6 @@ void quickdial_init(void){
 	keypad_set_read_callback(quickdial_menu_input);
 }
 
-/**
-* \brief quickdial_menu_input Deals with handling the input for deleting, loading and creating profiles.
-* @param row Row of key that caused the ISR
-* @param col Column of key that caused the ISR
-*/
 void quickdial_menu_input(int row, int col){
 	switch (SYMBOL(row, col)){
 		case SYMBOL_0:
@@ -124,9 +178,7 @@ void quickdial_menu_input(int row, int col){
 			
 	}
 }
-/**
-* \brief Deletes a given profile by rewriting the page in the EEPROM with zeros
-*/
+
 void del_profile(int row, int col){
 	int zero_array[sizeof(Profile)] = {0};
 	int prof;
@@ -147,13 +199,8 @@ void del_profile(int row, int col){
 			boot_mode_init();
 	}
 }
-/**
-* \brief set_setting_input Deals with handling the input for setting setiings for new profiles. Performs bounds checking for each input.
-* @param row Row of key that caused the ISR
-* @param col Column of key that caused the ISR
-*/
+
 void set_setting_input(int row, int col) {
-	Settings settings;
 	static int setting_val = 0;
 
 	int symbol = SYMBOL(row, col);	
@@ -245,12 +292,14 @@ void set_setting_input(int row, int col) {
 						
 						lcd_clear();
 						keypad_set_read_callback(set_characters);
-						stage = 0;
+						stage = PickProfile;
 					} else {
 						setting_val = 0;
 						clear_user_input();
 					}
 					
+					break;
+				default:
 					break;
 			}
 			break;
@@ -262,11 +311,6 @@ void set_setting_input(int row, int col) {
 	}
 }
 
-/**
-* \brief set_setting_input Deals with handling the input for setting the saved characters for new profiles.
-* @param row Row of key that caused the ISR
-* @param col Column of key that caused the ISR
-*/
 void set_characters(int row, int col){
 	static int i = 0;
 	static int checksum = 0;
@@ -292,9 +336,6 @@ void set_characters(int row, int col){
 	}
 }
 
-/**
-* \brief calculates the checksum of a Profile. Used on creation and on loading for verification to ensure no errors in case of EEPROM failure.
-*/
 int checksum_check(Profile profile){
 	int i;
 	uint16_t calc_checksum = profile.length ^ SETTINGS_CHECKSUM(profile.settings);
