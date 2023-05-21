@@ -9,6 +9,10 @@
 #include "tone.h"
 #include <string.h>
 
+
+/**
+*\brief NewProfileStage Enumerated list to store each stage of creating a new profile
+*/
 enum NewProfileStage {
 	PickProfile = 0,
 	SetISS = 1,
@@ -17,7 +21,13 @@ enum NewProfileStage {
 	SetProfileLength = 4,
 };
 
+/**
+*stage Stores what current stage profile creation is in.
+*/
 static int stage = 0;
+/**
+*profile_num Stores what profile is being created, loaded or deleted.
+*/
 static int profile_num;
 static Profile curr_profile;
 void set_setting_input(int row, int col);
@@ -33,6 +43,9 @@ int checksum_check(Profile profile);
 	
 #define PROFILE_OFFSET 0
 
+/**
+* \brief load_profile Loads a profile from the EEPROM, performs bounds checking queues the tones into the queue. Once done exits back to boot menu.
+*/
 void load_profile(int symbol){
 	int i;
 	int profile_num = SYMBOL_TO_NUM(symbol);
@@ -65,6 +78,9 @@ void load_profile(int symbol){
 	}
 }
 
+/**
+* \brief quickdial_init Creates the initial menu for quickdial and sets the ISR callback appropriately.
+*/
 void quickdial_init(void){
 	lcd_clear();
 	lcd_print("A:NEW      B:DEL");
@@ -73,6 +89,11 @@ void quickdial_init(void){
 	keypad_set_read_callback(quickdial_menu_input);
 }
 
+/**
+* \brief quickdial_menu_input Deals with handling the input for deleting, loading and creating profiles.
+* @param row Row of key that caused the ISR
+* @param col Column of key that caused the ISR
+*/
 void quickdial_menu_input(int row, int col){
 	switch (SYMBOL(row, col)){
 		case SYMBOL_0:
@@ -103,6 +124,9 @@ void quickdial_menu_input(int row, int col){
 			
 	}
 }
+/**
+* \brief Deletes a given profile by rewriting the page in the EEPROM with zeros
+*/
 void del_profile(int row, int col){
 	int zero_array[sizeof(Profile)] = {0};
 	int prof;
@@ -123,7 +147,11 @@ void del_profile(int row, int col){
 			boot_mode_init();
 	}
 }
-
+/**
+* \brief set_setting_input Deals with handling the input for setting setiings for new profiles. Performs bounds checking for each input.
+* @param row Row of key that caused the ISR
+* @param col Column of key that caused the ISR
+*/
 void set_setting_input(int row, int col) {
 	Settings settings;
 	static int setting_val = 0;
@@ -234,7 +262,11 @@ void set_setting_input(int row, int col) {
 	}
 }
 
-
+/**
+* \brief set_setting_input Deals with handling the input for setting the saved characters for new profiles.
+* @param row Row of key that caused the ISR
+* @param col Column of key that caused the ISR
+*/
 void set_characters(int row, int col){
 	static int i = 0;
 	static int checksum = 0;
@@ -260,6 +292,9 @@ void set_characters(int row, int col){
 	}
 }
 
+/**
+* \brief calculates the checksum of a Profile. Used on creation and on loading for verification to ensure no errors in case of EEPROM failure.
+*/
 int checksum_check(Profile profile){
 	int i;
 	uint16_t calc_checksum = profile.length ^ SETTINGS_CHECKSUM(profile.settings);

@@ -11,6 +11,10 @@
 #define MIN_PROFILE_LENGTH 1
 #define MAX_PROFILE_LENGTH 32
 
+
+/**
+*\brief Data structure that stores each profile
+*/
 typedef struct Profile {
 	Settings settings;
 	uint16_t checksum;
