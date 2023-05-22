@@ -491,41 +491,126 @@ This lax approach to error handling is tolerated because the system is not expec
 In order to deal with the unlikely possibility that a struct is corrupted without invalidating the checksum, or to deal with cases where the checksum is valid while the data is not\footnote{This occurs, for example, when booting the system after the EEPROM has been erased. The region containing system settings is zeroed out, so the checksum check will succeed ($0 \oplus 0 = 0$), but the data is invalid.}, the system also checks that values for any settings (even those embedded in a quickdial profile) are in a valid range before loading them. When loading system settings, invalid fields are set to the default value. In the case of profiles, invalid fields in the embedded settings cause profile loading to fail.
 
 \section{Management} \label{schedule}
-\subsection{Final Deadline}
-The final deadline will be set to \textbf{10\textsuperscript{th} May} to ensure that the work is done at a proper pace whilst leaving enough room for any necessary 
-adjustments.
 
 \subsection{Tasks}
-To implement the system, the above-mentioned software components have to be split into multiple sub-tasks. Each task will have a fairly allocated time-frame for completion. The deadlines for each task are as follows:
-\subsubsection{Drivers}
-\begin{enumerate}
-    \item LCD Driver - Deadline: \textbf{8\textsuperscript{th} April}. Subtasks: Symbol and C-String to LCD function, Display function.
-    \item Keypad Driver - Deadline: \textbf{8\textsuperscript{th} April}. Subtasks: Polling Cycle function for the keypad, Keypad driven interrupt.
-    \item LED Driver - Deadline: \textbf{8\textsuperscript{th} April}. Subtasks: LED On function, LED Off function.
-    \item Persistent Storage Driver - Deadline: \textbf{16\textsuperscript{th} April}. Subtasks: Serialising Data, Persisting Data, Loading Data, Deserializing Data.
-    \item DAC Driver - Deadline: \textbf{20\textsuperscript{th} April}. Subtasks: Timer interrupt handler enable method, Set timer duration function, Interrupt handlers.
-\end{enumerate}
+To implement the system, the software components mentioned were split into multiple tasks. 
 
-\subsubsection{Data Structures}
-\begin{enumerate}
-    \item Lock-Free queue - Deadline: \textbf{1\textsuperscript{st} April}. Subtasks: Atomic Enqueue function, Atomic Check and Dequeue function.
-\end{enumerate}
+The quantity and nature of tasks was adapted from the original plan presented in March, and was gradually updated as the team realized the goals that needed to be met to finish implementing the project.
 
-\subsubsection{System}
-\begin{enumerate}
-    \item Mode loader - Deadline: \textbf{16\textsuperscript{th} April}. Subtasks: Display Options function, Load settings/normal mode functions.
-    \item Settings Mode - Deadline: \textbf{27\textsuperscript{th} April}. Subtasks: Display settings function, Save settings function.
-\end{enumerate}
+The following shows a timeline of tasks carried out.
 
-\subsection{Task Dependencies}
-When considering the inter-dependencies of the tasks listed above, there is a discrete order of task development that when followed should ensure that each subsequent task has adequate resources to be accomplished. The order is the following:
 \begin{enumerate}
-    \item Lock-Free Queue
-    \item LCD Driver
-   \item LED Driver
-   \item Keypad Driver
-   \item Persistent Storage Driver
-   \item DAC Driver
+   \item \textbf{ARM Assembly Research}
+
+      Duration: February $25\textsuperscript{th}$ - March $2\textsuperscript{th}$
+   
+      Contributions: Mark Mizzi   
+
+   \item \textbf{LCD Research}
+   
+      Duration: February $25\textsuperscript{th}$ - March $2\textsuperscript{th}$
+
+      Contributions: Gabriel Apap
+
+   \item \textbf{Tone generation}
+   
+      Duration: February $25\textsuperscript{th}$ - March $24\textsuperscript{th}$
+
+      Contributions: Mark Mizzi, Gabriel Apap
+
+      Subtasks:
+      \begin{enumerate}
+         \item DAC research
+         \item Proof of concept for tone generation in Jupyter notebook
+         \item Tone generation code
+         \item DAC driver
+      \end{enumerate}
+
+   \item \textbf{Lock Free Queue}
+      
+      Duration: March $9\textsuperscript{th}$ - March $20\textsuperscript{th}$
+
+      Contributions: Mark Mizzi
+
+   \item \textbf{Design brief}
+      
+         Duration: March $10\textsuperscript{th}$ - May $22\textsuperscript{th}$
+   
+         Contributions: Mark Mizzi, Damjan Filipovic, Gabriel Apap
+   
+
+   \item \textbf{Doxygen setup and configuration}
+   
+      Duration: March $24\textsuperscript{th}$
+   
+      Contributions: Mark Mizzi
+
+   \item \textbf{Keypad driver}
+
+      Duration: March $30\textsuperscript{th}$ - May $6\textsuperscript{th}$
+
+      Contributions: Damjan Filipovic, Mark Mizzi
+
+      Subtasks:
+      \begin{enumerate}
+         \item Polling loop.
+         \item Interrupt-driven keypad input detection.
+      \end{enumerate}
+
+   \item \textbf{LCD Code}
+   
+      Contributions: Gabriel Apap
+   
+      Duration: April $27\textsuperscript{th}$ - May $9\textsuperscript{th}$
+      
+   \item \textbf{Major Code Refactor}
+
+      Contributions: Mark Mizzi, Gabriel Apap
+
+      Duration: May $4\textsuperscript{th}$
+
+   \item \textbf{EEPROM research and code sourcing} 
+   
+      Duration: May $10\textsuperscript{th}$ - May $12\textsuperscript{th}$
+
+      Contributions: Gabriel Apap
+
+   \item \textbf{Menu code}
+   
+      Duration: May $16\textsuperscript{th}$
+
+      Contributions: Mark Mizzi
+
+   \item \textbf{Settings mode}
+   
+      Duration: May $16\textsuperscript{th}$
+
+      Contributions: Mark Mizzi
+
+   \item \textbf{Quickdial mode}
+   
+      Duration: May $16\textsuperscript{th}$
+
+      Contribrutions: Gabriel Apap
+
+   \item \textbf{Video recording}
+   
+      Duration: May $16\textsuperscript{th}$ - May $21\textsuperscript{th}$
+
+      Contributions: Mark Mizzi, Gabriel Apap
+
+   \item \textbf{Video voiceover}
+      
+      Duration: May $22\textsuperscript{th}$
+
+      Contributions: Mark Mizzi, Damjan Filipovic, Gabriel Apap
+   
+   \item \textbf{Video editing}
+   
+      Duration: May $22\textsuperscript{th}$ - May $24\textsuperscript{th}$
+
+      Contributions: Damjan Filipovic
+      
 \end{enumerate}
 
 \section{Closure}
